@@ -1,6 +1,6 @@
 // requires https://github.com/wilmouths/RGBLed
 #include <RGBLed.h>
-#include <ArduinoBLE.h>
+
 #include <Arduino_HS300x.h>
 
 const char* SERVICE_UUID = "018dbf71-70f9-7324-b813-03e0d06a3acf";
@@ -15,8 +15,11 @@ BLEFloatCharacteristic humidityCh(HUMIDITY_CH_UUID, BLERead | BLENotify);
 
 RGBLed led(2, 3, 4, RGBLed::COMMON_CATHODE);
 
+const int MIDI_BAUD = 31250;
+const int ORIGINAL_BAUD = 115200;
+
 void setup() {
-  Serial.begin(115200);
+  Serial.begin(MIDI_BAUD);
   while (!Serial) {}
 
   // initialize temperature / humidity sensors
@@ -75,8 +78,3 @@ void loop() {
 
   delay(50);
 }
-
-/*
-- https://www.midi.org/specifications/midi-transports-specifications/5-pin-din-electrical-specs
-- https://docs.arduino.cc/learn/communication/uart/
-*/
