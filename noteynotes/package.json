@@ -1,7 +1,6 @@
 {
   "name": "noteynotes",
   "version": "0.0.1",
-  "packageManager": "yarn@3.6.0",
   "main": "./index.js",
   "types": "./index.d.ts",
   "devDependencies": {
@@ -14,8 +13,9 @@
     "react-dom": "*"
   },
   "scripts": {
-    "build": "tsc",
-    "dev": "tsc -w"
+    "clean": "rm -rf build tsconfig.tsbuildinfo",
+    "build": "tsc --incremental",
+    "start:dev": "tsc -w --incremental"
   },
   "dependencies": {
     "fast-json-stable-stringify": "^2.1.0",
