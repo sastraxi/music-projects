@@ -1,5 +1,6 @@
 # Build results
 build
+tsconfig.tsbuildinfo
 
 # Logs
 logs
