@@ -1,6 +1,5 @@
 import type { MetaFunction } from "@remix-run/node";
-import { combineChord } from "noteynotes";
-import { chordsMatchingCondition } from 'noteynotes';
+import { chordsMatchingCondition, combineChord } from "noteynotes";
 
 export const meta: MetaFunction = () => {
   return [
