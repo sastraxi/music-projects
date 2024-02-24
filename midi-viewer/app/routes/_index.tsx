@@ -37,19 +37,19 @@ export default function Index() {
         return notes;
       })
     }
-  }, [notes]);
+  }, []);
 
   useEffect(() => {
     return listenForMidi(midiCallback)
   }, []);
 
+  const notesString = notes?.map(({ note }) => note).join(', ') ?? '';
+
   return (
     <div style={{ fontFamily: "system-ui, sans-serif", lineHeight: "1.8" }}>
       <h1>Welcome to Remix</h1>
       <h2>Chord: ???</h2>
-      <ul>
-        {notes?.map(({ note }, index) => <li key={index}>{note}</li>) }
-      </ul>
+      <h3>{notesString}</h3>
       <button onClick={() => setNotes([])}>
         Reset
       </button>
