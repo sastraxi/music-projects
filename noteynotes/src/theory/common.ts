@@ -1,4 +1,4 @@
-import { transpose, Scale, Interval, Note as TonalNote } from 'tonal'
+import { transpose, Scale, Interval, Note as TonalNote, Note } from 'tonal'
 
 /**
  * e.g. C, E2, D#, Eb4
@@ -201,6 +201,9 @@ export const noteForDisplay = (
   const displayedOctave = shouldShowOctave ? (octave ?? '') : ''
   return `${displayAccidentals(noteNameInContext)}${displayedOctave}`
 }
+
+export const noteFromMidi = (midiNote: number) =>
+  TonalNote.fromMidi(midiNote);
 
 /**
  * e.g. C major, F lydian

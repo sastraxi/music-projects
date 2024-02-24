@@ -1,24 +1,30 @@
-type CallbackFunction = (arg0: Event) => undefined
+type CallbackFunction = (arg0: MIDIMessageEvent) => void
 type CancelFunction = () => void
 
-export async function listenForMidi(callback: CallbackFunction): Promise<CancelFunction> {
-    return navigator.requestMIDIAccess()
+let savedMidiAccess: MIDIAccess | undefined;
+
+export function listenForMidi(callback: CallbackFunction): CancelFunction {
+    navigator.requestMIDIAccess()
         .then((midiAccess) => {
-            console.log(midiAccess);
+            savedMidiAccess = midiAccess;
             var inputs = midiAccess.inputs;
             var outputs = midiAccess.outputs;
 
             for (var input of midiAccess.inputs.values()) {
+                // @ts-ignore why does it think this takes a generic Event?
                 input.addEventListener("midimessage", callback);
-            }
-            return () => {
-                for (var input of midiAccess.inputs.values()) {
-                    input.removeEventListener("midimessage", callback);
-                }
             }
         })
         .catch(() => {
             console.error('Could not access your MIDI devices.');
             return () => {};
         });
+
+    return () => {
+        if (!savedMidiAccess) return;
+        for (var input of savedMidiAccess.inputs.values()) {
+            // @ts-ignore why does it think this takes a generic Event?
+            input.removeEventListener("midimessage", callback);
+        }
+    }
 }

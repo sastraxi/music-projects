@@ -1,6 +1,6 @@
 import type { MetaFunction } from "@remix-run/node";
-import { Note, chordsMatchingCondition, combineChord } from "noteynotes";
-import { useEffect, useState } from "react";
+import { Note, noteFromMidi, chordsMatchingCondition, combineChord } from "noteynotes";
+import { useCallback, useEffect, useState } from "react";
 import { listenForMidi } from "~/midi";
 
 export const meta: MetaFunction = () => {
@@ -10,24 +10,45 @@ export const meta: MetaFunction = () => {
   ];
 };
 
+type TimestampedNote = {
+  note: Note
+  timestamp: number
+}
+
+const noteEquals = (a: TimestampedNote, b: TimestampedNote) => {
+  return a.note === b.note && a.timestamp === b.timestamp;
+}
+
 export default function Index() {
-  const [notes, setNotes] = useState<Note[]>();
+  const [notes, setNotes] = useState<TimestampedNote[]>([]);
+
+  const midiCallback = useCallback((msg: MIDIMessageEvent) => {
+    const [command, note, velocity] = msg.data
+    if (command === 144 && velocity > 0) {
+      setNotes((notes) => {
+        const candidate = {
+          note: noteFromMidi(note),
+          timestamp: msg.timeStamp,
+        }
+        const lastNote = notes[notes.length - 1]
+        if (!lastNote || !noteEquals(lastNote, candidate)) {
+          return [...notes, candidate];
+        }
+        return notes;
+      })
+    }
+  }, [notes]);
 
   useEffect(() => {
-    return listenForMidi((msg) => {
-      const [command, note, velocity] = msg.data
-      if (command === 144) {
-        setNotes([...(notes ?? []), note])
-      }
-    })
-  }, [])
+    return listenForMidi(midiCallback)
+  }, []);
 
   return (
     <div style={{ fontFamily: "system-ui, sans-serif", lineHeight: "1.8" }}>
       <h1>Welcome to Remix</h1>
       <h2>Chord: ???</h2>
       <ul>
-        {notes?.map(note => <li>{note}</li>) }
+        {notes?.map(({ note }, index) => <li key={index}>{note}</li>) }
       </ul>
       <button onClick={() => setNotes([])}>
         Reset
