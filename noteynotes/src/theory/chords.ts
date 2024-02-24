@@ -1,8 +1,8 @@
-import { cumulative, shortestOf, unique } from "../util"
-import { CONSIDERED_NOTE_NAMES, Note, NoteDisplayContext, noteForDisplay, stripOctave } from "./common"
+import { cumulative, relativeToFirst, shortestOf, unique } from "../util"
+import { CONSIDERED_NOTE_NAMES, Note, NoteDisplayContext, explodeNote, noteForDisplay, stripOctave } from "./common"
 import { AUGMENTED_TRIAD, DIMINISHED_TRIAD, MAJOR_DIM_TRIAD, MAJOR_TRIAD, MINOR_TRIAD, POWER_TRIAD, SUS2_TRIAD, SUS4_TRIAD, Triad } from "./triads"
 import { Chord, ExplodedChord, explodeChord } from "../instrument/guitar"
-import { Interval, distance, interval, transpose } from "tonal"
+import { Interval, distance, interval, transpose, Note as TonalNote } from "tonal"
 
 type ChordType = {
   /**
@@ -25,7 +25,7 @@ type ChordType = {
   extensions?: number[]
 }
 
-type FullChord = {
+export type FullChord = {
   rootNote: Note
   bassNote?: Note
   type: ChordType

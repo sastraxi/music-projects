@@ -1,6 +1,6 @@
 import type { MetaFunction } from "@remix-run/node";
-import { Note, noteFromMidi, chordsMatchingCondition, combineChord } from "noteynotes";
-import { useCallback, useEffect, useState } from "react";
+import { Note, noteFromMidi, chordsMatchingCondition, combineChord, chordForDisplay, detectChord } from "noteynotes";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { listenForMidi } from "~/midi";
 
 export const meta: MetaFunction = () => {
@@ -43,12 +43,16 @@ export default function Index() {
     return listenForMidi(midiCallback)
   }, []);
 
+  const resolvedChord = useMemo(() =>
+    detectChord(notes.map(({ note }) => note)),
+    [notes])
+
   const notesString = notes?.map(({ note }) => note).join(', ') ?? '';
 
   return (
     <div style={{ fontFamily: "system-ui, sans-serif", lineHeight: "1.8" }}>
       <h1>Welcome to Remix</h1>
-      <h2>Chord: ???</h2>
+      {resolvedChord && <h2>Chord: {chordForDisplay(resolvedChord)}</h2>}
       <h3>{notesString}</h3>
       <button onClick={() => setNotes([])}>
         Reset

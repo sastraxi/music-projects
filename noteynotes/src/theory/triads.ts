@@ -16,8 +16,30 @@ export const MAJOR_TRIAD: Triad = [4, 3] as const
 export const MAJOR_DIM_TRIAD: Triad = [4, 2] as const  // e.g. 9b5
 export const DIMINISHED_TRIAD: Triad = [3, 3] as const
 export const AUGMENTED_TRIAD: Triad = [4, 4] as const
-
 const DIMINISHED_TRIADS = [DIMINISHED_TRIAD, MAJOR_DIM_TRIAD]
+
+/**
+ * Returns the first or second inversion of a given triad.
+ */
+const inv = (triad: Triad, inversion: 1 | 2): Triad => {
+  if (inversion === 1) {
+    return [triad[1], 12 - (triad[0] + triad[1])]
+  } else {
+    return [12 - (triad[0] + triad[1]), triad[0]]
+  }
+}
+
+export const TRIAD_LIBRARY: Record<string, Triad[]> = {}
+{
+  TRIAD_LIBRARY['5'] = [POWER_TRIAD, inv(POWER_TRIAD, 1)]
+  TRIAD_LIBRARY['sus2'] = [SUS2_TRIAD, inv(SUS2_TRIAD, 1), inv(SUS2_TRIAD, 2)]
+  TRIAD_LIBRARY['sus4'] = [SUS4_TRIAD, inv(SUS4_TRIAD, 1), inv(SUS4_TRIAD, 2)]
+  TRIAD_LIBRARY['min'] = [MINOR_TRIAD, inv(MINOR_TRIAD, 1), inv(MINOR_TRIAD, 2)]
+  TRIAD_LIBRARY['maj'] = [MAJOR_TRIAD, inv(MAJOR_TRIAD, 1), inv(MAJOR_TRIAD, 2)]
+  TRIAD_LIBRARY['b5'] = [MAJOR_DIM_TRIAD, inv(MAJOR_DIM_TRIAD, 1), inv(MAJOR_DIM_TRIAD, 2)]
+  TRIAD_LIBRARY['dim'] = [DIMINISHED_TRIAD, inv(DIMINISHED_TRIAD, 1), inv(DIMINISHED_TRIAD, 2)]
+  TRIAD_LIBRARY['aug'] = [AUGMENTED_TRIAD]
+}
 
 /**
  * Return the three component notes of a given triad starting

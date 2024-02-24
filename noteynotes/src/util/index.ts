@@ -83,5 +83,21 @@ export const cumulative = (arr: Readonly<Array<number>>) =>
     [],
   )
 
+/**
+ * e.g. [4, 6, 10, 1] => [0, 2, 6, -3]
+ */
+export const relativeToFirst = (arr: Readonly<Array<number>>) =>
+  arr.reduce<Array<number>>(
+    (workingArray, item, index) => {
+      if (index === 0) {
+        workingArray.push(0)
+      } else {
+        workingArray.push(item - arr[0])
+      }
+      return workingArray
+    },
+    [],
+  )
+
 export const unique = <T>(arr: Array<T>) =>
   arr.filter((item, index, self) => self.indexOf(item) === index)
