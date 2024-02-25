@@ -27,6 +27,13 @@ const score = (result: TriadDetectionResult): number => {
   )
 }
 
+// which index represents the root note in a given inversion?
+const inversionToRoot = (inversion: 0 | 1 | 2): number => {
+  if (inversion === 0) return 0
+  if (inversion === 1) return 2
+  return 1
+}
+
 /**
  * What triad is represented in these intervals?
  */
@@ -74,11 +81,11 @@ export const detectChord = (notesWithOctaves: Note[]): FullChord | undefined => 
   let withBass = detectTriad(relativeToFirst(sortedNotes.slice(1)))  
   let withoutBass = detectTriad(relativeToFirst(sortedNotes))
 
-  // throw away candidates that have more than one extra interval within the first octave
-  if (withBass && withBass.extraIntervals.filter(x => x < 12).length > 1) {
+  // throw away candidates that have any extra intervals within the first octave
+  if (withBass && withBass.extraIntervals.filter(x => x < 12).length > 0) {
     withBass = undefined
   }
-  if (withoutBass && withoutBass.extraIntervals.filter(x => x < 12).length > 1) {
+  if (withoutBass && withoutBass.extraIntervals.filter(x => x < 12).length > 0) {
     withoutBass = undefined
   }
 
@@ -96,24 +103,25 @@ export const detectChord = (notesWithOctaves: Note[]): FullChord | undefined => 
     }
   }
 
-  let rootIndex: number
+  let rootNote: string
   let chordType: string
   if (withBass) {
-    // with bass
-    rootIndex = 1
-    if (withBass.inversion === 1) rootIndex = 3
-    if (withBass.inversion === 2) rootIndex = 2
+    // account for bass note
+    let rootIndex = inversionToRoot(withBass.inversion) + 1
+    rootNote = stripOctave(TonalNote.fromMidi(sortedNotes[rootIndex]))
     const bassNote = stripOctave(TonalNote.fromMidi(sortedNotes[0]))
-    chordType = `${withBass.name}/${bassNote}`
-
+    if (bassNote === rootNote) {
+      // bass note === root note, don't show over chord
+      chordType = withBass.name
+    } else {
+      chordType = `${withBass.name}/${bassNote}`
+    }
   } else {
     // without bass
-    rootIndex = 0
-    if (withoutBass!.inversion === 1) rootIndex = 2
-    if (withoutBass!.inversion === 2) rootIndex = 1
+    let rootIndex = inversionToRoot(withoutBass!.inversion)
+    rootNote = stripOctave(TonalNote.fromMidi(sortedNotes[rootIndex]))
     chordType = withoutBass!.name
   }
 
-  const rootNote = stripOctave(TonalNote.fromMidi(sortedNotes[rootIndex]))
   return lookupChord(`${rootNote} ${chordType}`)
 }
