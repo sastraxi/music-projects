@@ -39,7 +39,10 @@ export default function Index() {
       })
     } else if (command === 176 && note === 64 && velocity > 0) {
       // sustain pedal; use it to switch chords for now
-      setChordHistory((chordHistory) => [...chordHistory, undefined])
+      // FIXME: chord history should be zustand state
+      if (chordHistory[chordHistory.length - 1] !== undefined) {
+        setChordHistory((chordHistory) => [...chordHistory, undefined])
+      }
       setNotes([])
     }
   }, [])
@@ -52,23 +55,25 @@ export default function Index() {
     detectChord(notes.map(({ note }) => note)),
     [notes])
 
+  // save the last chord we successfully resolved to
   useEffect(() => {
     if (notes.length < 2) return
     if (resolvedChord) {
+      // FIXME: chord history should be zustand state   
       setChordHistory([...chordHistory.slice(0, chordHistory.length - 1), resolvedChord])
-    } else {
-      // TODO: find a better way to do chord history. Want to have access to the previous resolved chord too
-      // one thing we want is to create a new chord if just the bass note changes... this can be done e.g. throwing away all but most recent note under the root note
-      // this probably shouldn't be done in a react component...
-      if (chordHistory[chordHistory.length - 1] !== undefined) {
-        // we had a chord here; move on but keep the last note
-        setChordHistory([...chordHistory, undefined])
-        setNotes(notes.slice(-1))
-      } else {
-        // we never resolved to a chord
-      }
     }
   }, [notes])
+
+  // TODO: tapping sustain pedal once commits the current chord to history
+  //  ... double-tapping deletes the latest chord
+  //  ... notes played right before the tap(s) should be considered part of the next batch of notes
+
+  // TODO: expect users to "nail" the initial notes
+  //  ... needs a different approach to chords where we can have monads and dyads + build on top of what's there
+
+  // TODO: both bass note and extensions should be dynamic over the chord lifetime
+  //  ... need to auto-switch based on a _dissonance threshold_
+  //  ... record their history (per base chord) and show them on the UI (MIDI)
 
   const notesString = notes?.map(({ note }) => note).join(', ') ?? ''
 
