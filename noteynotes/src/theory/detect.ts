@@ -15,6 +15,19 @@ type TriadDetectionResult = {
 }
 
 /**
+ * How good is this result?
+ * Higher scores are better matches.
+ */
+const score = (result: TriadDetectionResult): number => {
+  const powerChordPenalty = result.triad.includes(0) ? 1 : 0
+  return -(
+    result.extraIntervals.length * 10
+    + result.inversion 
+    + powerChordPenalty
+  )
+}
+
+/**
  * What triad is represented in these intervals?
  */
 const detectTriad = (intervals: number[]): TriadDetectionResult | undefined => {
@@ -28,15 +41,17 @@ const detectTriad = (intervals: number[]): TriadDetectionResult | undefined => {
       if (!cumTriad.every(i => intervals.includes(i))) continue
       const extraIntervals = intervals.filter(i => i !== 0 && !cumTriad.includes(i))
 
-      if (!result || result.extraIntervals.length > extraIntervals.length) {
+      const candidate: TriadDetectionResult = {
+        triad,
+        name,
+        inversion: inversion as 0 | 1 | 2,
+        extraIntervals
+
+      }
+
+      if (!result || score(result) < score(candidate)) {
         // we found a (better) match
-        console.log(name)
-        result = {
-          triad,
-          name,
-          inversion: inversion as 0 | 1 | 2,
-          extraIntervals
-        }
+        result = candidate
       }
     }
   }
@@ -45,30 +60,60 @@ const detectTriad = (intervals: number[]): TriadDetectionResult | undefined => {
 
 /**
  * Figure out what chord a smattering of notes best represents.
- * @param notes 
+ * @returns undefined if the notes don't form a coherent chord, otherwise our best guess
  */
-export const detectChord = (notes: Note[]): FullChord | undefined => {
-  const midiNotes = [...new Set(notes)].map(TonalNote.midi)
+export const detectChord = (notesWithOctaves: Note[]): FullChord | undefined => {
+  const midiNotes = [...new Set(notesWithOctaves)].map(TonalNote.midi)
   if (midiNotes.find((note) => note === null || note === undefined)) {
     throw new Error("All inputs to detectChord must have octaves.")
   }
 
   const sortedNotes = (midiNotes as number[]).sort((a, b) => a - b)
 
-  // detect a triad with and without the lowest note
-  const intWithBass = relativeToFirst(sortedNotes)
-  // const intWithoutBass = relativeToFirst(sortedNotes.slice(1))
+  // detect triads with and without the lowest note (over chord)
+  let withBass = detectTriad(relativeToFirst(sortedNotes.slice(1)))  
+  let withoutBass = detectTriad(relativeToFirst(sortedNotes))
 
-  const detected = detectTriad(intWithBass)
-  if (!detected) return undefined
+  // throw away candidates that have more than one extra interval within the first octave
+  if (withBass && withBass.extraIntervals.filter(x => x < 12).length > 1) {
+    withBass = undefined
+  }
+  if (withoutBass && withoutBass.extraIntervals.filter(x => x < 12).length > 1) {
+    withoutBass = undefined
+  }
 
-  console.log('triad with bass', detected)
-  // console.log('triad without bass', detectTriad(intWithoutBass))
+  // no candidate passed 
+  if (!withBass && !withoutBass) {
+    return undefined
+  }
 
-  let rootIndex = 0
-  if (detected.inversion === 1) rootIndex = 2
-  if (detected.inversion === 2) rootIndex = 1
+  // if both pass, use the one with better score
+  if (withBass && withoutBass) {
+    if (score(withBass) > score(withoutBass)) {
+      withoutBass = undefined
+    } else {
+      withBass = undefined
+    }
+  }
+
+  let rootIndex: number
+  let chordType: string
+  if (withBass) {
+    // with bass
+    rootIndex = 1
+    if (withBass.inversion === 1) rootIndex = 3
+    if (withBass.inversion === 2) rootIndex = 2
+    const bassNote = stripOctave(TonalNote.fromMidi(sortedNotes[0]))
+    chordType = `${withBass.name}/${bassNote}`
+
+  } else {
+    // without bass
+    rootIndex = 0
+    if (withoutBass!.inversion === 1) rootIndex = 2
+    if (withoutBass!.inversion === 2) rootIndex = 1
+    chordType = withoutBass!.name
+  }
 
   const rootNote = stripOctave(TonalNote.fromMidi(sortedNotes[rootIndex]))
-  return lookupChord(`${rootNote} ${detected.name}`)
+  return lookupChord(`${rootNote} ${chordType}`)
 }

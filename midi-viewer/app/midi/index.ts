@@ -7,10 +7,7 @@ export function listenForMidi(callback: CallbackFunction): CancelFunction {
     navigator.requestMIDIAccess()
         .then((midiAccess) => {
             savedMidiAccess = midiAccess;
-            var inputs = midiAccess.inputs;
-            var outputs = midiAccess.outputs;
-
-            for (var input of midiAccess.inputs.values()) {
+            for (var input of savedMidiAccess.inputs.values()) {
                 // @ts-ignore why does it think this takes a generic Event?
                 input.addEventListener("midimessage", callback);
             }

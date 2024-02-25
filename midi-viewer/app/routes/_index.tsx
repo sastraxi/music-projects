@@ -1,5 +1,5 @@
 import type { MetaFunction } from "@remix-run/node";
-import { Note, noteFromMidi, chordsMatchingCondition, combineChord, chordForDisplay, detectChord } from "noteynotes";
+import { Note, noteFromMidi, chordsMatchingCondition, combineChord, chordForDisplay, detectChord, FullChord } from "noteynotes";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { listenForMidi } from "~/midi";
 
@@ -20,7 +20,8 @@ const noteEquals = (a: TimestampedNote, b: TimestampedNote) => {
 }
 
 export default function Index() {
-  const [notes, setNotes] = useState<TimestampedNote[]>([]);
+  const [notes, setNotes] = useState<TimestampedNote[]>([])
+  const [chordHistory, setChordHistory] = useState<(FullChord | undefined)[]>([undefined])
 
   const midiCallback = useCallback((msg: MIDIMessageEvent) => {
     const [command, note, velocity] = msg.data
@@ -37,21 +38,33 @@ export default function Index() {
         return notes;
       })
     }
-  }, []);
+  }, [])
 
   useEffect(() => {
     return listenForMidi(midiCallback)
-  }, []);
+  }, [])
 
   const resolvedChord = useMemo(() =>
     detectChord(notes.map(({ note }) => note)),
     [notes])
 
-  const notesString = notes?.map(({ note }) => note).join(', ') ?? '';
+  // if (resolvedChord) {
+  //   setChordHistory([...chordHistory.slice(0, chordHistory.length - 1), resolvedChord])
+  // } else {
+  //   if (chordHistory[chordHistory.length - 1] !== undefined) {
+  //     // we had a chord here; move on
+  //     setChordHistory([...chordHistory, undefined])
+  //   } else {
+  //     // we never resolved to a chord
+  //   }
+  //   setNotes([])
+  // }
+
+  const notesString = notes?.map(({ note }) => note).join(', ') ?? ''
 
   return (
-    <div style={{ fontFamily: "system-ui, sans-serif", lineHeight: "1.8" }}>
-      <h1>Welcome to Remix</h1>
+    <div style={{ fontFamily: "system-ui, sans-serif" }}>
+      <h1>Name that chord (MIDI)!</h1>
       {resolvedChord && <h2>Chord: {chordForDisplay(resolvedChord)}</h2>}
       <h3>{notesString}</h3>
       <button onClick={() => setNotes([])}>
