@@ -116,6 +116,9 @@ importers:
       react-dom:
         specifier: ^18.2.0
         version: 18.2.0(react@18.2.0)
+      zustand:
+        specifier: ^4.3.8
+        version: 4.5.1(@types/react@18.2.57)(react@18.2.0)
     devDependencies:
       '@remix-run/dev':
         specifier: ^2.7.2

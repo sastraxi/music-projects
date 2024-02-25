@@ -2,6 +2,7 @@ import type { MetaFunction } from "@remix-run/node";
 import { Note, noteFromMidi, chordsMatchingCondition, combineChord, chordForDisplay, detectChord, FullChord } from "noteynotes";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { listenForMidi } from "~/midi";
+import { useChords } from "~/state/chords";
 
 export const meta: MetaFunction = () => {
   return [
@@ -21,7 +22,9 @@ const noteEquals = (a: TimestampedNote, b: TimestampedNote) => {
 
 export default function Index() {
   const [notes, setNotes] = useState<TimestampedNote[]>([])
-  const [chordHistory, setChordHistory] = useState<(FullChord | undefined)[]>([undefined])
+  const [pendingChord, setPendingChord] = useState<FullChord | undefined>()
+  const [didTap, setDidTap] = useState<boolean>(false)
+  const { chords, push } = useChords()
 
   const midiCallback = useCallback((msg: MIDIMessageEvent) => {
     const [command, note, velocity] = msg.data
@@ -33,17 +36,18 @@ export default function Index() {
         }
         const lastNote = notes[notes.length - 1]
         if (!lastNote || !noteEquals(lastNote, candidate)) {
-          return [...notes, candidate];
+          const newNotes = [...notes, candidate]
+          if (newNotes.length >= 2) {
+            const resolvedChord = detectChord(newNotes.map(({ note }) => note))
+            setPendingChord(resolvedChord)
+          }
+          return newNotes;
         }
         return notes;
       })
     } else if (command === 176 && note === 64 && velocity > 0) {
       // sustain pedal; use it to switch chords for now
-      // FIXME: chord history should be zustand state
-      if (chordHistory[chordHistory.length - 1] !== undefined) {
-        setChordHistory((chordHistory) => [...chordHistory, undefined])
-      }
-      setNotes([])
+      setDidTap(true)
     }
   }, [])
 
@@ -51,18 +55,16 @@ export default function Index() {
     return listenForMidi(midiCallback)
   }, [])
 
-  const resolvedChord = useMemo(() =>
-    detectChord(notes.map(({ note }) => note)),
-    [notes])
-
-  // save the last chord we successfully resolved to
   useEffect(() => {
-    if (notes.length < 2) return
-    if (resolvedChord) {
-      // FIXME: chord history should be zustand state   
-      setChordHistory([...chordHistory.slice(0, chordHistory.length - 1), resolvedChord])
+    if (!didTap) return
+    if (pendingChord) {
+      console.log('push', pendingChord)
+      push(pendingChord)
+      setPendingChord(undefined)
     }
-  }, [notes])
+    setNotes([])
+    setDidTap(false)
+  }, [didTap])
 
   // TODO: tapping sustain pedal once commits the current chord to history
   //  ... notes played right before the tap should be considered part of the next batch of notes
@@ -84,13 +86,13 @@ export default function Index() {
         Clear current chord
       </button>
       <h2>
-        {resolvedChord && <span>Chord: {chordForDisplay(resolvedChord)}</span>}
+        {pendingChord && <span>Chord: {chordForDisplay(pendingChord)}</span>}
         <span> ({notesString})</span>
       </h2>
       
       <h3>Chord history:</h3>
       <ul>
-        {chordHistory.filter(x => x).map((chord, index) => <li key={index}>{chordForDisplay(chord!)}</li>)}
+        {chords.map((chord, index) => <li key={index}>{chordForDisplay(chord!)}</li>)}
       </ul>
     </div>
   );
