@@ -65,9 +65,9 @@ export default function Index() {
   }, [notes])
 
   // TODO: tapping sustain pedal once commits the current chord to history
+  //  ... notes played right before the tap should be considered part of the next batch of notes
   //  ... double-tapping deletes the latest chord
-  //  ... notes played right before the tap(s) should be considered part of the next batch of notes
-
+  
   // TODO: expect users to "nail" the initial notes
   //  ... needs a different approach to chords where we can have monads and dyads + build on top of what's there
 
