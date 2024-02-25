@@ -1,5 +1,4 @@
 {
-  "workbench.colorTheme": "Night Owl (No Italics)",
   "files.exclude": {
     "**/.git": true,
     "**/.svn": true,
@@ -10,10 +9,8 @@
     "**/node_modules": true
   },
   "search.exclude": {
-    "**/.yarn": true,
     "**/.pnp.*": true
   },
-  "typescript.tsdk": ".yarn/sdks/typescript/lib",
   "typescript.enablePromptUseWorkspaceTsdk": true,
   "editor.tabSize": 2,
   "editor.insertSpaces": true,
