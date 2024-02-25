@@ -6,8 +6,8 @@ import { useChords } from "~/state/chords";
 
 export const meta: MetaFunction = () => {
   return [
-    { title: "New Remix App" },
-    { name: "description", content: "Welcome to Remix!" },
+    { title: "MIDI Viewer" },
+    { name: "description", content: "Visualize chords played over Web MIDI" },
   ];
 };
 
@@ -24,7 +24,7 @@ export default function Index() {
   const [notes, setNotes] = useState<TimestampedNote[]>([])
   const [pendingChord, setPendingChord] = useState<FullChord | undefined>()
   const [didTap, setDidTap] = useState<boolean>(false)
-  const { chords, push } = useChords()
+  const { chords, push, reset } = useChords()
 
   const midiCallback = useCallback((msg: MIDIMessageEvent) => {
     const [command, note, velocity] = msg.data
@@ -82,9 +82,14 @@ export default function Index() {
   return (
     <div style={{ fontFamily: "system-ui, sans-serif" }}>
       <h1>Name that chord (MIDI)!</h1>
-      <button onClick={() => setNotes([])}>
-        Clear current chord
-      </button>
+      <div>
+        <button onClick={() => setDidTap(true)}>
+          Push / clear
+        </button>
+        <button onClick={() => reset()}>
+          Reset chords
+        </button>        
+      </div>
       <h2>
         {pendingChord && <span>Chord: {chordForDisplay(pendingChord)}</span>}
         <span> ({notesString})</span>
