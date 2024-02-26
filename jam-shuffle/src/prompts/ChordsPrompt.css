@@ -1,0 +1,35 @@
+div.chords {
+    display: flex;
+    flex-direction: row;
+    margin-bottom: 4rem;
+}
+
+.buttons.fixed {
+    position: fixed;
+    left: 3rem;
+    right: 3rem;
+    bottom: 2rem;
+    width: auto;
+    height: 6em;
+    justify-content: space-between;
+}
+
+    .buttons.fixed > * {
+        margin: 0;
+        flex-grow: 1;
+    }
+
+    .buttons.fixed > :nth-child(1) {
+        justify-content: flex-start;
+    }
+
+    .buttons.fixed > :nth-child(2) {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+    }    
+
+    .buttons.fixed > :nth-child(3) {
+        justify-content: flex-end;
+    }

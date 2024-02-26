@@ -1,0 +1,74 @@
+/* shroud + positioning */
+div.menuContainer {
+    position: fixed;
+    left: 0;
+    right: 0;
+    top: 90px;
+    bottom: 0;
+    z-index: 999;
+    display: flex;
+    flex-direction: column;
+    background: black;
+    overflow-y: auto;
+    transition: bottom var(--menu-transition-time) ease-out;
+    box-shadow: 0px 20px 35px rgba(0, 0, 0, 0.7);
+}
+
+    div.menuContainer.closed {
+        bottom: calc(100vh - 90px);
+    }
+
+    div.menuContainer > .main {
+        padding: 2em;
+    }
+
+    /* the little dropdown arrow from the settings icon */
+    div.menuContainer::before {
+        content: "";
+        display: block;
+        position: fixed;
+        top: 75px;
+        right: 42px;
+        width: 0;
+        height: 0;
+        border-left: 15px solid transparent;
+        border-right: 15px solid transparent;
+        border-bottom: 15px solid black;
+        font-size: 0;
+        line-height: 0;
+        clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%);
+        transition: all 0.1s cubic-bezier(0.86, 0, 0.07, 1);
+        filter: none;
+    }
+        div.menuContainer.closed::before {
+            clip-path: polygon(0% 100%, 100% 100%, 100% 100%, 0% 100%);
+            filter: blur(5px);
+        }
+
+    /* mini inset "drop shadow" */
+    div.menuContainer::after {
+        content: "";
+        display: block;
+        position: fixed;
+        top: 90px;
+        right: 0;
+        left: 0;
+        height: 20px;
+        background-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0));
+        opacity: 1;
+    }
+        div.menuContainer.closed::after {
+            opacity: 0;
+        }
+
+    div.menuContainer > * {
+        color: white;
+        text-align: left;
+    }
+
+    div.menuContainer h1,
+    div.menuContainer h2,
+    div.menuContainer h3 {
+        margin: 0;
+    }
+

@@ -1,0 +1,91 @@
+div.choice {
+    position: relative;
+}
+
+    div.choice.expanded {
+        z-index: 99;
+    }
+
+    div.choice.full-width {
+        width: 100%;
+    }
+
+    div.choice .current {
+        font-weight: 500;
+        display: inline-block;
+        user-select: none;
+    }
+
+    div.choice > .select-container {
+        display: none;
+    }
+
+    div.choice.expanded > .select-container {
+        display: block;
+        background: rgba(0, 0, 0, 0.7);
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+    }
+
+        div.choice > .select-container .current {
+            color: #213547;
+            background: white;
+            padding: 0.15em 0.4em;
+            margin: -0.15em -0.4em;
+            background-color: white;
+            border-radius: 0.3em;
+            cursor: pointer;
+        }
+
+        div.choice > .select-container input[type=text] {
+            position: absolute;
+            opacity: 0;
+        }
+
+        div.choice div.positioner {
+            position: absolute;
+            overflow: visible;
+            /* transform set via screenPosition / alignItems */
+        }
+
+
+    button.choice-button {
+        border-radius: initial;
+        border: initial;
+        padding: initial;
+        font-size: inherit;
+        font-weight: 500;
+        font-family: inherit;
+        background-color: transparent;
+        z-index: auto;
+    }
+          
+
+    div.choice > .choice-button {
+        font-weight: 500;
+        color: white;
+        cursor: pointer;
+        transition: padding 0.2s, margin 0.2s, background-color 0.2s, color 0.2s;
+        /* transition: all 0.2s; */
+        color: white;
+        position: relative;
+        border-radius: 0.3em;
+        text-decoration: underline;
+        text-decoration-style: dotted;
+        text-decoration-color: rgba(255, 255, 255, 0.3);
+    }
+
+
+        div.choice.expanded > .choice-button {
+            opacity: 0;
+        }
+
+        div.choice:hover > .choice-button {
+          padding: 0.15em 0.4em;
+          margin: -0.15em -0.4em;
+          background-color: white;
+          color: #213547;
+        }
