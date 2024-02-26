@@ -205,6 +205,14 @@ export const noteForDisplay = (
 export const noteFromMidi = (midiNote: number) =>
   TonalNote.fromMidi(midiNote);
 
+export const noteToMidi = (note: Note): number => {
+  const midiEquivalent = TonalNote.midi(note)
+  if (midiEquivalent === null || midiEquivalent === undefined) {
+    throw new Error(`Could not convert note ${note} to MIDI`)
+  }
+  return midiEquivalent
+}
+
 /**
  * e.g. C major, F lydian
  */
