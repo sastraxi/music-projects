@@ -53,7 +53,6 @@ const detectTriad = (intervals: number[]): TriadDetectionResult | undefined => {
         name,
         inversion: inversion as 0 | 1 | 2,
         extraIntervals
-
       }
 
       if (!result || score(result) < score(candidate)) {

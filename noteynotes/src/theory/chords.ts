@@ -55,10 +55,11 @@ const CHORD_LIBRARY: Record<string, ChordType> = {}
   add(['6add9'], MAJOR_TRIAD, [9, 14])
   add(['7', 'majm7'], MAJOR_TRIAD, [10])
   add(['7♯9'], MAJOR_TRIAD, [10, 15])  // hendrix chord
-  add(['maj7', 'add11'], MAJOR_TRIAD, [11])
+  add(['maj7'], MAJOR_TRIAD, [11])
   add(['maj9'], MAJOR_TRIAD, [11, 14])
   add(['add9'], MAJOR_TRIAD, [14])
   add(['11'], MAJOR_TRIAD, [10, 14, 17])
+  add(['add11'], MAJOR_TRIAD, [17])  // FIXME: is this right or should it be same as maj7 like we had previously?
   add(['maj11'], MAJOR_TRIAD, [11, 14, 17])
   add(['maj13'], MAJOR_TRIAD, [11, 14, 18, 21])
 

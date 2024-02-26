@@ -23,8 +23,15 @@ const noteEquals = (a: TimestampedNote, b: TimestampedNote) => {
 export default function Index() {
   const [notes, setNotes] = useState<TimestampedNote[]>([])
   const [pendingChord, setPendingChord] = useState<FullChord | undefined>()
-  const [didTap, setDidTap] = useState<boolean>(false)
+  const [tapTimestamps, setTapTimestamps] = useState<number[]>([])
   const { chords, push, reset } = useChords()
+
+  /**
+   * 
+   * @param ts NaN signifies a synthetic tap event (i.e. from UI, not MIDI)
+   * @returns 
+   */
+  const pushTap = (ts: number) => setTapTimestamps(prev => [...prev, ts])
 
   const midiCallback = useCallback((msg: MIDIMessageEvent) => {
     const [command, note, velocity] = msg.data
@@ -39,7 +46,9 @@ export default function Index() {
           const newNotes = [...notes, candidate]
           if (newNotes.length >= 2) {
             const resolvedChord = detectChord(newNotes.map(({ note }) => note))
-            setPendingChord(resolvedChord)
+            if (resolvedChord) {
+              setPendingChord(resolvedChord)
+            }
           }
           return newNotes;
         }
@@ -47,7 +56,7 @@ export default function Index() {
       })
     } else if (command === 176 && note === 64 && velocity > 0) {
       // sustain pedal; use it to switch chords for now
-      setDidTap(true)
+      pushTap(msg.timeStamp)
     }
   }, [])
 
@@ -56,26 +65,30 @@ export default function Index() {
   }, [])
 
   useEffect(() => {
-    if (!didTap) return
+    if (tapTimestamps.length === 0) return
     if (pendingChord) {
-      console.log('push', pendingChord)
       push(pendingChord)
       setPendingChord(undefined)
     }
     setNotes([])
-    setDidTap(false)
-  }, [didTap])
+    setTapTimestamps([])
+  }, [tapTimestamps])
 
-  // TODO: tapping sustain pedal once commits the current chord to history
-  //  ... notes played right before the tap should be considered part of the next batch of notes
-  //  ... double-tapping deletes the latest chord
-  
-  // TODO: expect users to "nail" the initial notes
-  //  ... needs a different approach to chords where we can have monads and dyads + build on top of what's there
+  // next:
+  // TODO: "long context" --> guessed scale based on recent notes
+  // TODO: "long context" --> guessed key based on scale + tonal centre? note movement / clustering?
+  // TODO: UI that shows recent chords and their functions
+  // TODO: needs a different approach to chords where we can have monads and dyads + build on top of what's there
+  // TODO: checkmark on UI when chords is locked in
+  // TODO: UI that shows a keyboard viz of the notes you're playing
+  // TODO: delete a specific chord from history
 
+  // later:
+  // TODO: notes played right before the tap should be considered part of the next batch of notes
+  // TODO: double-tapping drops the pending chord without committing it
   // TODO: both bass note and extensions should be dynamic over the chord lifetime
-  //  ... need to auto-switch based on a _dissonance threshold_
-  //  ... record their history (per base chord) and show them on the UI (MIDI)
+  // TODO: need to auto-switch extensions based on a _dissonance threshold_
+  // TODO: record their history (per base chord) and show them on the UI (MIDI)
 
   const notesString = notes?.map(({ note }) => note).join(', ') ?? ''
 
@@ -83,7 +96,7 @@ export default function Index() {
     <div style={{ fontFamily: "system-ui, sans-serif" }}>
       <h1>Name that chord (MIDI)!</h1>
       <div>
-        <button onClick={() => setDidTap(true)}>
+        <button onClick={() => pushTap(NaN)}>
           Push / clear
         </button>
         <button onClick={() => reset()}>
