@@ -1,3 +1,4 @@
+import { Button } from "@nextui-org/react";
 import type { MetaFunction } from "@remix-run/node";
 import { Note, noteFromMidi, chordsMatchingCondition, combineChord, chordForDisplay, detectChord, FullChord } from "noteynotes";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -94,14 +95,16 @@ export default function Index() {
 
   return (
     <div style={{ fontFamily: "system-ui, sans-serif" }}>
-      <h1>Name that chord (MIDI)!</h1>
+      <h1 className="text-3xl font-bold underline">
+        Name that chord!
+      </h1>
       <div>
-        <button onClick={() => pushTap(NaN)}>
+        <Button color="primary" onClick={() => pushTap(NaN)}>
           Push / clear
-        </button>
-        <button onClick={() => reset()}>
+        </Button>
+        <Button onClick={() => reset()}>
           Reset chords
-        </button>        
+        </Button>        
       </div>
       <h2>
         {pendingChord && <span>Chord: {chordForDisplay(pendingChord)}</span>}
