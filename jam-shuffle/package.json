@@ -16,6 +16,7 @@
     "@tanstack/react-query": "^4.29.12",
     "fast-json-stable-stringify": "^2.1.0",
     "midi-sounds-react": "^1.2.54",
+    "noteynotes": "workspace:*",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "tonal": "^5.0.0",

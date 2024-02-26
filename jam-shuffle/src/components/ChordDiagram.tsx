@@ -1,7 +1,7 @@
-import { draw } from 'vexchords';
+import { draw } from 'vexchords'
 import './ChordDiagram.css'
-import { useEffect, useRef } from 'react';
-import { ChordDefinition } from '../theory/guitar';
+import { useEffect, useRef } from 'react'
+import { ChordDefinition } from 'noteynotes'
 
 type PropTypes = ChordDefinition & {
     label?: string,

@@ -13,7 +13,8 @@ import {
   chordsMatchingCondition,
   ChordAndAccidentals,
   keysIncludingChord,
-} from '../theory/keys'
+  lookupChord,
+} from 'noteynotes'
 
 import {
   ALL_GUITAR_CHORDS,
@@ -21,17 +22,17 @@ import {
   chordForDisplay,
   chordEquals,
   ExplodedChord,
-} from '../theory/guitar'
+} from 'noteynotes'
 
 import {
   KEY_NAMES_BASED_ON_MAJOR,
   keynameToNotes,
   untransformAccidentals,
-} from '../theory/common'
+} from 'noteynotes'
 
-import { Balanced, FLAVOUR_CHOICES, Flavour, getMakeFlavourChoice } from '../theory/flavours'
+import { Balanced, FLAVOUR_CHOICES, Flavour, getMakeFlavourChoice } from 'noteynotes'
 import MIDISounds, { MIDISoundPlayer } from 'midi-sounds-react'
-import { getRomanNumeral } from '../theory/triads'
+import { getRomanNumeral } from 'noteynotes'
 
 
 ///////////////////////////
@@ -63,7 +64,7 @@ const keyLockingExpandedTransform = (keyLocking: KeyLockingChoices) => {
 const keyLockingCaption = (keyName: string, keyLocked: boolean, firstChord: ChordChoice) => {
   if (!keyLocked) {
     if (firstChord.locked) {
-      return `keys containing ${chordForDisplay(firstChord.chord, { keyName })}`
+      return `keys containing ${chordForDisplay(lookupChord(firstChord.chord), { keyName })}`
     }
     return 'all keys'
   }

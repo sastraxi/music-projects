@@ -7,9 +7,9 @@ import PlayButton from '../audio/PlayButton'
 import './ChordInput.css'
 
 import { firstNDigits } from '../util'
-import { ExplodedChord, chordForDisplay, frettingToVexChord, getFrettings } from '../theory/guitar'
-import { getRomanNumeral } from '../theory/triads'
-import { untransformAccidentals } from '../theory/common'
+import { ExplodedChord, chordForDisplay, frettingToVexChord, getFrettings, lookupChord } from 'noteynotes'
+import { getRomanNumeral } from 'noteynotes'
+import { untransformAccidentals } from 'noteynotes'
 
 ///////////////////////////
 
@@ -119,10 +119,10 @@ const ChordInput = ({
         <Choice
           alignItems="center"
           current={choice.chord}
-          displayTransform={chord => chordForDisplay(chord, { keyName })}
+          displayTransform={chord => chordForDisplay(lookupChord(chord), { keyName })}
           allChoices={selectableChords}
           setChoice={chord => modifyChord({ chord })}
-          searchTransform={chord => untransformAccidentals(chordForDisplay(chord, { keyName })).replace(' ', '')}
+          searchTransform={chord => untransformAccidentals(chordForDisplay(lookupChord(chord), { keyName })).replace(' ', '')}
         />
         <span className="numeral">
           {romanNumeral}
