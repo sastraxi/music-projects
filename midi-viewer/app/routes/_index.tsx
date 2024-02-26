@@ -109,18 +109,25 @@ export default function Index() {
           >
             {pendingChord ? "Save chord (tap sustain)" : "Play some notes!"}
           </Button>
+          <Button
+            size="lg"
+            onClick={() => { setPendingChord(undefined); setNotes([]) }}
+            isDisabled={notes.length === 0}
+          >
+            Reset
+          </Button>
         </div>
       </div>
 
-      <div className="text-8xl flex justify-center bg-pink-950 text-slate-300 p-16 rounded-xl my-4">
-        <span>{pendingChord ? chordForDisplay(pendingChord) : "--"}</span>
+      <div className="text-8xl flex justify-center bg-pink-950 p-16 rounded-xl my-4">
+        <span style={{ textShadow: "6px 6px 0px rgba(0,0,0,0.4)" }}>{pendingChord ? chordForDisplay(pendingChord) : "--"}</span>
       </div>
 
-      <div className="flex flex-row justify-between items-center h-8">
-        <h2 className="text-2xl">
+      <div className="flex flex-row justify-between items-center min-h-8">
+        <h2 className="text-2xl text-left pr-1">
           {notesString}
         </h2>
-        <h2 className="text-2xl">
+        <h2 className="text-2xl text-right pl-1">
           {notesString}
         </h2>
       </div>
@@ -130,11 +137,16 @@ export default function Index() {
           Chord history
         </h1>
         <div className="flex space-x-2">
-          <Button size="md" color="danger" onClick={() => reset()}>
-            Clear
+          <Button size="md" color="danger" className="bg-pink-800" onClick={() => reset()} isDisabled={chords.length === 0}>
+            Clear all
           </Button>
         </div>
       </div>
+      {chords.length === 0 && (
+          <p className="text-sm mt-4 text-slate-400">
+            Chords you save will appear here.
+          </p>
+        )}
       <div className="grid grid-cols-4 gap-4 mt-4">
         {chords.map((chord, index) => (
           <Card key={index}>
