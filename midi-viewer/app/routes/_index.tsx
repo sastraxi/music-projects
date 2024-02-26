@@ -1,9 +1,10 @@
-import { Button } from "@nextui-org/react";
+import { Button, Card, CardBody, CardHeader, Spacer } from "@nextui-org/react";
 import type { MetaFunction } from "@remix-run/node";
-import { Note, noteFromMidi, chordsMatchingCondition, combineChord, chordForDisplay, detectChord, FullChord } from "noteynotes";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { Note, noteFromMidi,  chordForDisplay, detectChord, FullChord } from "noteynotes";
+import { useCallback, useEffect, useState } from "react";
 import { listenForMidi } from "~/midi";
 import { useChords } from "~/state/chords";
+import OneUpContainer from "~/view/OneUpContainer";
 
 export const meta: MetaFunction = () => {
   return [
@@ -25,7 +26,7 @@ export default function Index() {
   const [notes, setNotes] = useState<TimestampedNote[]>([])
   const [pendingChord, setPendingChord] = useState<FullChord | undefined>()
   const [tapTimestamps, setTapTimestamps] = useState<number[]>([])
-  const { chords, push, reset } = useChords()
+  const { chords, push, reset, removeChord } = useChords()
 
   /**
    * 
@@ -94,27 +95,56 @@ export default function Index() {
   const notesString = notes?.map(({ note }) => note).join(', ') ?? ''
 
   return (
-    <div style={{ fontFamily: "system-ui, sans-serif" }}>
-      <h1 className="text-3xl font-bold underline">
-        Name that chord!
-      </h1>
-      <div>
-        <Button color="primary" onClick={() => pushTap(NaN)}>
-          Push / clear
-        </Button>
-        <Button onClick={() => reset()}>
-          Reset chords
-        </Button>        
+    <OneUpContainer>
+      <div className="flex flex-row justify-between items-center">
+        <h1 className="text-2xl">
+          MIDI chord visualizer
+        </h1>
+        <div className="flex space-x-2">
+          <Button
+            size="lg"
+            color="primary"
+            onClick={() => pushTap(NaN)}
+            isDisabled={pendingChord === undefined}
+          >
+            {pendingChord ? "Save chord (tap sustain)" : "Play some notes!"}
+          </Button>
+        </div>
       </div>
-      <h2>
-        {pendingChord && <span>Chord: {chordForDisplay(pendingChord)}</span>}
-        <span> ({notesString})</span>
-      </h2>
-      
-      <h3>Chord history:</h3>
-      <ul>
-        {chords.map((chord, index) => <li key={index}>{chordForDisplay(chord!)}</li>)}
-      </ul>
-    </div>
+
+      <div className="text-8xl flex justify-center bg-pink-950 text-slate-300 p-16 rounded-xl my-4">
+        <span>{pendingChord ? chordForDisplay(pendingChord) : "--"}</span>
+      </div>
+
+      <div className="flex flex-row justify-between items-center h-8">
+        <h2 className="text-2xl">
+          {notesString}
+        </h2>
+        <h2 className="text-2xl">
+          {notesString}
+        </h2>
+      </div>
+    
+      <div className="flex flex-row justify-between items-center mt-8">
+        <h1 className="text-xl">
+          Chord history
+        </h1>
+        <div className="flex space-x-2">
+          <Button size="md" color="danger" onClick={() => reset()}>
+            Clear
+          </Button>
+        </div>
+      </div>
+      <div className="grid grid-cols-4 gap-4 mt-4">
+        {chords.map((chord, index) => (
+          <Card key={index}>
+            <CardHeader className="justify-between">
+              <p className="text-2xl">{chordForDisplay(chord!)}</p>
+              <Button isIconOnly size="sm" title="Delete" onClick={() => removeChord(index)}>✕</Button>
+            </CardHeader>
+          </Card>
+        ))}
+      </div>
+    </OneUpContainer>
   );
 }

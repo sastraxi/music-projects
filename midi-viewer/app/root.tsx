@@ -31,7 +31,7 @@ export default function App() {
       </head>
       <body>
         <NextUIProvider>
-          <main className="dark text-foreground bg-background">
+          <main className="min-h-screen dark text-foreground bg-background">
             <Outlet />
             <ScrollRestoration />
             <Scripts />
