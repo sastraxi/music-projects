@@ -17,11 +17,9 @@ export const meta: MetaFunction = () => {
 
 export default function Index() {
   const { sortedNotes, noteSet, hasNote, includeNote, excludeNote, reset: resetNotes } = useNoteSet()
-  
   const [pendingChord, setPendingChord] = useState<FullChord | undefined>()
   const [tapTimestamps, setTapTimestamps] = useState<number[]>([])
   const { chords, push, reset, removeChord } = useChords()
-
 
   /**
    * 
@@ -83,7 +81,7 @@ export default function Index() {
 
 
   const toggleNote = (note: Note, timestamp: number) => {
-    if (hasNote(note)) {
+    if (!hasNote(note)) {
       includeNote(note, timestamp)
     } else {
       excludeNote(note)
