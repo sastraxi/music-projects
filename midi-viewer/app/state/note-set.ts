@@ -11,7 +11,7 @@ type NoteSetState = {
 const INITIAL_STATE: NoteSetState = {
   timestampByNote: {},
   sortedNotes: [],
-  noteSet: new Set(),
+  noteSet: new Set([]),
 }
 
 //////////////////////////////////////////////////////////

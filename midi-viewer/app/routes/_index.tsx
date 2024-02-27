@@ -15,6 +15,8 @@ export const meta: MetaFunction = () => {
   ];
 };
 
+let timeOffset: number | undefined = undefined
+
 export default function Index() {
   const { sortedNotes, noteSet, hasNote, includeNote, excludeNote, reset: resetNotes } = useNoteSet()
   const [pendingChord, setPendingChord] = useState<FullChord | undefined>()
@@ -30,9 +32,16 @@ export default function Index() {
 
   const midiCallback = useCallback((msg: MIDIMessageEvent) => {
     const [command, midiNote, velocity] = msg.data
+    
+    // try to follow the midi clock
+    if (timeOffset === undefined) {
+      timeOffset = msg.timeStamp - performance.now()
+    }
+
     if (command === 144 && velocity > 0) {
       // turn this note on
       includeNote(noteFromMidi(midiNote), msg.timeStamp)
+      console.log('midi', msg.timeStamp)
     } else if (command === 176 && midiNote === 64 && velocity > 0) {
       // sustain pedal; use it to switch chords for now
       pushTap(msg.timeStamp)
@@ -81,6 +90,7 @@ export default function Index() {
 
 
   const toggleNote = (note: Note, timestamp: number) => {
+    console.log('togle', timestamp)
     if (!hasNote(note)) {
       includeNote(note, timestamp)
     } else {
@@ -98,7 +108,7 @@ export default function Index() {
           <Button
             size="lg"
             color="primary"
-            onClick={() => pushTap(NaN)}
+            onClick={() => pushTap(performance.now() + (timeOffset ?? 0))}
             isDisabled={pendingChord === undefined}
           >
             {pendingChord ? "Save chord (tap sustain)" : "No chord detected"}
@@ -120,7 +130,7 @@ export default function Index() {
       <div className="mt-4">
         <Piano
           highlighted={sortedNotes}
-          onClick={note => toggleNote(note, -1)}
+          onClick={note => toggleNote(note, performance.now() + (timeOffset ?? 0))}
         />
       </div>
 

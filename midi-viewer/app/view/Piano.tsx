@@ -229,6 +229,7 @@ const Piano = ({
 
       keys.push(
         <PianoKey
+          key={key}
           piece={piece}
           x={x}
           fillColor={fill}
