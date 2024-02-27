@@ -4,7 +4,7 @@ import { Note, noteFromMidi,  chordForDisplay, detectChord, FullChord, noteForDi
 import { useCallback, useEffect, useState } from "react";
 import { listenForMidi } from "~/midi";
 import { useChords } from "~/state/chords";
-import { remove } from "~/util";
+import { useNoteSet } from "~/state/note-set";
 import OneUpContainer from "~/view/OneUpContainer";
 import Piano from "~/view/Piano";
 
@@ -15,31 +15,13 @@ export const meta: MetaFunction = () => {
   ];
 };
 
-type TimestampedNote = {
-  note: Note
-  timestamp: number
-}
-
-const noteEquals = (a: TimestampedNote, b: TimestampedNote) => {
-  return a.note === b.note && a.timestamp === b.timestamp;
-}
-
 export default function Index() {
-  const [notes, setNotes] = useState<TimestampedNote[]>([])
+  const { sortedNotes, noteSet, hasNote, includeNote, excludeNote, reset: resetNotes } = useNoteSet()
+  
   const [pendingChord, setPendingChord] = useState<FullChord | undefined>()
   const [tapTimestamps, setTapTimestamps] = useState<number[]>([])
   const { chords, push, reset, removeChord } = useChords()
 
-  const withToggledNote = (notes: TimestampedNote[], note: TimestampedNote) => {
-    const foundIndex = notes.findIndex(candidate => candidate.note === note.note)
-    if (foundIndex === -1) {
-      // add this note
-      return [...notes, note]        
-    } else {
-      // remove this note
-      return remove(notes, foundIndex)
-    }
-  }
 
   /**
    * 
@@ -49,22 +31,11 @@ export default function Index() {
   const pushTap = (ts: number) => setTapTimestamps(prev => [...prev, ts])
 
   const midiCallback = useCallback((msg: MIDIMessageEvent) => {
-    const [command, note, velocity] = msg.data
+    const [command, midiNote, velocity] = msg.data
     if (command === 144 && velocity > 0) {
-      setNotes((notes) => {
-        const candidate = {
-          note: noteFromMidi(note),
-          timestamp: msg.timeStamp,
-        }
-        const lastNote = notes[notes.length - 1]
-        if (!lastNote || !noteEquals(lastNote, candidate)) {
-          // FIXME: this "double note" sensing logic is broken.
-          // move this out of the render logic?
-          return withToggledNote(notes, candidate)
-        }
-        return notes;
-      })
-    } else if (command === 176 && note === 64 && velocity > 0) {
+      // turn this note on
+      includeNote(noteFromMidi(midiNote), msg.timeStamp)
+    } else if (command === 176 && midiNote === 64 && velocity > 0) {
       // sustain pedal; use it to switch chords for now
       pushTap(msg.timeStamp)
     }
@@ -80,17 +51,17 @@ export default function Index() {
       push(pendingChord)
       setPendingChord(undefined)
     }
-    setNotes([])
+    resetNotes()
     setTapTimestamps([])
   }, [tapTimestamps])
 
   useEffect(() => {
-    if (notes.length < 2) {
+    if (noteSet.size < 2) {
       setPendingChord(undefined)
     }
-    const resolvedChord = detectChord(notes.map(({ note }) => note))
+    const resolvedChord = detectChord(sortedNotes)
     setPendingChord(resolvedChord)
-  }, [notes])
+  }, [sortedNotes])
 
   // next:
   // TODO: "long context" --> guessed scale based on recent notes
@@ -106,11 +77,18 @@ export default function Index() {
   // TODO: need to auto-switch extensions based on a _dissonance threshold_
   // TODO: record their history (per base chord) and show them on the UI (MIDI)
 
-  const actualNotes = notes?.map(({ note }) => note) ?? undefined
-  const notesString = actualNotes?.map(note => noteForDisplay(note)).join(', ') ?? ''
+  const notesString = Array.from(sortedNotes)
+    .map(note => noteForDisplay(note, { showOctave: true }))
+    .join(', ')
 
-  const manuallyToggleNote = (note: Note) =>
-    setNotes(notes => withToggledNote(notes, { note, timestamp: -1 }))
+
+  const toggleNote = (note: Note, timestamp: number) => {
+    if (hasNote(note)) {
+      includeNote(note, timestamp)
+    } else {
+      excludeNote(note)
+    }
+  }
 
   return (
     <OneUpContainer>
@@ -129,8 +107,8 @@ export default function Index() {
           </Button>
           <Button
             size="lg"
-            onClick={() => { setPendingChord(undefined); setNotes([]) }}
-            isDisabled={notes.length === 0}
+            onClick={() => { setPendingChord(undefined); resetNotes() }}
+            isDisabled={sortedNotes.length === 0}
           >
             Reset
           </Button>
@@ -143,8 +121,8 @@ export default function Index() {
 
       <div className="mt-4">
         <Piano
-          highlighted={actualNotes}
-          onClick={manuallyToggleNote}
+          highlighted={sortedNotes}
+          onClick={note => toggleNote(note, -1)}
         />
       </div>
 
