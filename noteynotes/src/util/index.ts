@@ -116,3 +116,8 @@ export const pairwiseMultiply = (a: number[], b: number[]) =>
     (accum, _, i) => accum + a[i] * b[i],
     0
   )
+
+export const decimal = (n: number, places: number = 2) => {
+  const decpow = Math.pow(10, places)
+  return (Math.round(n * decpow) / decpow).toFixed(places);
+}

@@ -23,7 +23,7 @@ export default function Index() {
   const [timeOffset, setTimeOffset] = useState<number | undefined>(0)
   const { sortedNotes, noteSet, includeNote, excludeNote, reset: resetNotes } = useNoteSet()
   const { chords, push, reset: resetChords, removeChord } = useChords()
-  const { reset: resetHistogram, noteOn, noteOff } = useNoteHistogram()
+  const { noteOn, noteOff, reset: resetHistogram, maximum: histogramMaximum } = useNoteHistogram()
 
   const hasNote = (note: Note) => noteSet.has(note)
 
@@ -152,7 +152,7 @@ export default function Index() {
           Note histogram
         </h1>
         <div className="flex space-x-2">
-          <Button size="md" color="danger" className="bg-pink-800" onClick={resetHistogram}>
+          <Button size="md" color="danger" className="bg-pink-800" onClick={resetHistogram} isDisabled={histogramMaximum === 0}>
             Reset
           </Button>
         </div>

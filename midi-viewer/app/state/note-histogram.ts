@@ -5,7 +5,7 @@ import { List } from 'immutable'
 /*
   each datum is (note, start ms, end ms)
   desired output is an array of note probabilities, one octave
-  want more-recent notes and longer-held notes to have more 
+  want more-recent notes and longer-held notes to have more "juhj"
 */
 
 type MidiNote = number
@@ -24,6 +24,7 @@ type HistogramDatum = {
 const MIN_TIME_DELTA_MS = 0.5 * 1000
 
 const TIME_SCALE = 0.0003
+
 const TIME_EXPONENT = 0.5
 
 /**
@@ -44,7 +45,17 @@ const MIN_LENGTH_MS = 200
  * 
  * This approach prevents the algorithm from becoming slower and slower over time.
  */
-const LONG_CONTEXT_MS = 20 * 1000
+const LONG_CONTEXT_MS = 45 * 1000
+
+/**
+ * How should long context values decay towards zero over time?
+ */
+const LONG_CONTEXT_DECAY_PER_SECOND = 0.991
+
+/**
+ * Consider buckets to be zeroed out below this value.
+ */
+const EPSILON = 0.0006
 
 /**
  * What contribution should this datum have to its corresponding bucket?
@@ -70,6 +81,16 @@ type NoteHistogramState = {
    * What is the total magnitude of the computed histogram?
    */
   magnitude: number
+
+  /**
+   * What is the highest value attained by the computed histogram?
+   */
+  maximum: number
+
+  /**
+   * When did we last compute the histogram?
+   */
+  lastComputeTimestampMs: number | undefined
 }
 
 const INITIAL_STATE: NoteHistogramState = {
@@ -78,6 +99,8 @@ const INITIAL_STATE: NoteHistogramState = {
   longContext: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
   computed: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
   magnitude: 0,
+  maximum: 0,
+  lastComputeTimestampMs: undefined,
 }
 
 //////////////////////////////////////////////////////////
@@ -166,38 +189,45 @@ export const useNoteHistogram = create<NoteHistogramStateAndMutators>()(
 
       calculate: (currentTimestampMs: number) =>
         set((state) => {
-          if (state.shortContext.isEmpty()) return {}
-
+          // our histogram is simply the pairwise addition of "short" + "long" contexts.
           const computed: NoteHistogramBuckets = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
-          // move items from short context to long context
-          // we'll only consider notes that are closed
-          let longContextTotal = 0
-          const longContext: NoteHistogramBuckets = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+          // long context: decay
+          const longContext: NoteHistogramBuckets = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]          
+          const decay = (state.lastComputeTimestampMs !== undefined
+            ? Math.pow(LONG_CONTEXT_DECAY_PER_SECOND, (currentTimestampMs - state.lastComputeTimestampMs) / 1000)
+            : 1.0)
+
           for (let i = 0; i < 12; ++i) {
-            longContext[i] = state.longContext[i]
-            longContextTotal += longContext[i]
+            longContext[i] = state.longContext[i] * decay
+            if (longContext[i] < EPSILON) longContext[i] = 0
+            computed[i] += longContext[i]
           }
+
+          // items might move from short context to long context in this "tick"
+          // only consider notes that have end timestamps
           const [moveToLongContext, shortContext] = state.shortContext
             .partition(d => d.endMs === undefined || d.endMs + LONG_CONTEXT_MS > currentTimestampMs)
+
+          // contributions from notes moving to long-term context
           moveToLongContext.forEach((d) => {
             const w = weight(d, currentTimestampMs)
             longContext[bucketIndex(d.midiNote)] += w
-            longContextTotal += w
+            computed[bucketIndex(d.midiNote)] += w
           })
 
-          // our histogram is simply the pairwise addition of our contexts.
-          // first bring in our short context
+          // contributions from notes staying in short-term context
           shortContext.forEach((d) => {
             const w = weight(d, currentTimestampMs)
             computed[bucketIndex(d.midiNote)] += w
           })
 
-          // now the long context
+          // statistics
           let magnitude = 0
+          let maximum = 0
           for (let i = 0; i < 12; ++i) {
-            computed[i] += longContext[i]
             magnitude += computed[i]
+            if (maximum < computed[i]) maximum = computed[i]
           }
 
           return {
@@ -205,6 +235,8 @@ export const useNoteHistogram = create<NoteHistogramStateAndMutators>()(
             longContext,
             computed,
             magnitude,
+            maximum,
+            lastComputeTimestampMs: currentTimestampMs,
           }
         })
     }
