@@ -2,8 +2,10 @@ import { Button, Card, CardBody, CardHeader, Spacer } from "@nextui-org/react";
 import type { MetaFunction } from "@remix-run/node";
 import { Note, noteFromMidi,  chordForDisplay, detectChord, FullChord, noteForDisplay } from "noteynotes";
 import { useCallback, useEffect, useState } from "react";
+import NoteHistogram from "~/components/NoteHistogram";
 import { listenForMidi } from "~/midi";
 import { useChords } from "~/state/chords";
+import { useNoteHistogram } from "~/state/note-histogram";
 import { useNoteSet } from "~/state/note-set";
 import OneUpContainer from "~/view/OneUpContainer";
 import Piano from "~/view/Piano";
@@ -15,21 +17,16 @@ export const meta: MetaFunction = () => {
   ];
 };
 
-let timeOffset: number | undefined = undefined
-
 export default function Index() {
-  const { sortedNotes, noteSet, includeNote, excludeNote, reset: resetNotes } = useNoteSet()
   const [pendingChord, setPendingChord] = useState<FullChord | undefined>()
   const [tapTimestamps, setTapTimestamps] = useState<number[]>([])
-  const { chords, push, reset, removeChord } = useChords()
+  const [timeOffset, setTimeOffset] = useState<number | undefined>()
+  const { sortedNotes, noteSet, includeNote, excludeNote, reset: resetNotes } = useNoteSet()
+  const { chords, push, reset: resetChords, removeChord } = useChords()
+  const { reset: resetHistogram, noteOn, noteOff } = useNoteHistogram()
 
   const hasNote = (note: Note) => noteSet.has(note)
 
-  /**
-   * 
-   * @param ts NaN signifies a synthetic tap event (i.e. from UI, not MIDI)
-   * @returns 
-   */
   const pushTap = (ts: number) => setTapTimestamps(prev => [...prev, ts])
 
   const midiCallback = useCallback((msg: MIDIMessageEvent) => {
@@ -37,13 +34,20 @@ export default function Index() {
     
     // try to follow the midi clock
     if (timeOffset === undefined) {
-      timeOffset = msg.timeStamp - performance.now()
+      setTimeOffset(msg.timeStamp - performance.now())
     }
 
     if (command === 144 && velocity > 0) {
       // turn this note on
-      includeNote(noteFromMidi(midiNote), msg.timeStamp)
-      console.log('midi', msg.timeStamp)
+      const note = noteFromMidi(midiNote)
+      noteOn(note, msg.timeStamp)
+      includeNote(note, msg.timeStamp)
+
+    } else if (command === 144 && velocity === 0) {
+      // note off; only connected to histogram for now
+      const note = noteFromMidi(midiNote)
+      noteOff(note, msg.timeStamp)
+
     } else if (command === 176 && midiNote === 64 && velocity > 0) {
       // sustain pedal; use it to switch chords for now
       pushTap(msg.timeStamp)
@@ -143,13 +147,27 @@ export default function Index() {
           {notesString}
         </h2>
       </div>
-    
+
+      <div className="flex flex-row justify-between items-center mt-8 mb-4">
+        <h1 className="text-xl">
+          Note histogram
+        </h1>
+        <div className="flex space-x-2">
+          <Button size="md" color="danger" className="bg-pink-800" onClick={resetChords}>
+            Reset
+          </Button>
+        </div>
+      </div>
+      { timeOffset !== undefined && 
+        <NoteHistogram timeOffset={timeOffset} />
+      }
+  
       <div className="flex flex-row justify-between items-center mt-8">
         <h1 className="text-xl">
           Chord history
         </h1>
         <div className="flex space-x-2">
-          <Button size="md" color="danger" className="bg-pink-800" onClick={() => reset()} isDisabled={chords.length === 0}>
+          <Button size="md" color="danger" className="bg-pink-800" onClick={resetHistogram} isDisabled={chords.length === 0}>
             Clear all
           </Button>
         </div>
