@@ -25,6 +25,8 @@ const NoteHistogram = ({
     return guessKey(computed).slice(0, 5)
   }, [computed])
 
+  if (guessedKeys.length === 0) return <></>
+
   // TODO: report the key to zustand so places in the UI can use it as displayContext
   // TODO: move key guessing + interval out of react; just subscribe to enable / disable a pure JS thing
   // TODO: highlight notes in best-guess key

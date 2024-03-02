@@ -152,12 +152,12 @@ export default function Index() {
           Note histogram
         </h1>
         <div className="flex space-x-2">
-          <Button size="md" color="danger" className="bg-pink-800" onClick={resetHistogram} isDisabled={histogramMaximum === 0}>
+          <Button size="md" onClick={resetHistogram} isDisabled={histogramMaximum === 0}>
             Reset
           </Button>
         </div>
       </div>
-      { timeOffset !== undefined && 
+      { timeOffset !== undefined &&
         <NoteHistogram timeOffset={timeOffset} />
       }
   
