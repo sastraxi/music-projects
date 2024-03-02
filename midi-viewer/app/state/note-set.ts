@@ -18,7 +18,6 @@ const INITIAL_STATE: NoteSetState = {
 
 type NoteSetStateAndMutators = NoteSetState & {
   reset: () => void
-  hasNote: (note: Note) => boolean
   includeNote: (note: Note, timestamp: number) => void
   excludeNote: (note: Note) => void
 }
@@ -31,7 +30,6 @@ export const useNoteSet = create<NoteSetStateAndMutators>()(
       ...INITIAL_STATE,
       
       reset: () => set(() => INITIAL_STATE),
-      hasNote: (note: Note) => get().noteSet.has(note),
 
       includeNote: (note: Note, timestamp: number) =>
         set((prev) => {
