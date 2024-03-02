@@ -1,6 +1,7 @@
 import { Note, noteToMidi } from 'noteynotes'
 import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
+import { COMMON_STORAGE_OPTIONS } from './json-storage'
 
 type NoteSetState = {
   timestampByNote: Record<Note, number>
@@ -60,20 +61,7 @@ export const useNoteSet = create<NoteSetStateAndMutators>()(
     }),
     {
       name: 'midi-viewer-notes',
-      storage: createJSONStorage(() => localStorage, {
-        reviver: (key, value: any) => {
-          if (value?._zustand_type === 'set') {
-            return new Set(value.value)
-          }
-          return value
-        },
-        replacer: (key, value) => {
-          if (value instanceof Set) {
-            return { _zustand_type: 'set', value: Array.from(value) }
-          }
-          return value
-        },
-      })
+      storage: createJSONStorage(() => localStorage, COMMON_STORAGE_OPTIONS),
     }
   )
 )
