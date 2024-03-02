@@ -5,6 +5,18 @@ import { transpose, Scale, Interval, Note as TonalNote, Note } from 'tonal'
  */
 export type Note = string
 
+/**
+ * How many distinct notes inside an octave? Enharmonics (notes with the
+ * same pitch) are not considered to be distinct in this context.
+ */
+export const OCTAVE_SIZE = 12
+
+/**
+ * How many notes in each scale?
+ * Also: how many different modes are there of a major key?
+ */
+export const NUM_DEGREES = 7
+
 export type NoteDisplayContext = {
   keyName?: string
   scale?: Note[]

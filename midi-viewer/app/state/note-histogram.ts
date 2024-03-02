@@ -1,4 +1,4 @@
-import { Note, noteToMidi } from 'noteynotes'
+import { Note, NoteHistogramBuckets, noteToMidi } from 'noteynotes'
 import { create } from 'zustand'
 import { List } from 'immutable'
 
@@ -19,16 +19,6 @@ type HistogramDatum = {
 }
 
 /**
- * 12-bucket histogram, one for each note in the octave.
- * Starts at C.
- */
-type HistogramBuckets = [
-  number, number, number, number,
-  number, number, number, number,
-  number, number, number, number,
-]
-
-/**
  * Avoids asymptotic behaviour around dt = 0.
  */
 const MIN_TIME_DELTA_MS = 0.5 * 1000
@@ -40,44 +30,41 @@ const TIME_EXPONENT = 0.5
  * Increase to make longer notes have more weight; decrease to
  * reduce influence of length on histogram output.
  */
-const LENGTH_EXPONENT = 0.9
+const LENGTH_EXPONENT = 0.6
+
+/**
+ * Consider notes shorter than this to be this length.
+ */
+const MIN_LENGTH_MS = 200
 
 /**
  * For notes that are older than this, switch to a second histogram mechanism
  * where time is no longer considered. We "freeze" values into a long-context
- * histogram then add it to the dynamic valus provided by the short context.
+ * histogram then add it to the dynamic values provided by the short context.
  * 
  * This approach prevents the algorithm from becoming slower and slower over time.
  */
-const LONG_CONTEXT_MS = 30 * 1000
-
-/**
- * When considering the total magnitude of values in our long context buckets,
- * we'll normalize values down if the maximum ends up being greater than this value.
- * This allows us to ensure that newer notes always take priority, but we can
- * still pull "flavour" from history if our short context is inconclusive.
- */
-const LONG_CONTEXT_MAX_MAGNITUDE = 2.2
+const LONG_CONTEXT_MS = 20 * 1000
 
 /**
  * What contribution should this datum have to its corresponding bucket?
  */
 const weight = (d: HistogramDatum, currentTimestampMs: number): number => {
   const dt = Math.max(currentTimestampMs - d.startMs, MIN_TIME_DELTA_MS)
-  const length = d.endMs ? (d.endMs - d.startMs) : dt
+  const length = Math.max(d.endMs ? (d.endMs - d.startMs) : dt, MIN_LENGTH_MS)
   return Math.pow(length, LENGTH_EXPONENT) / Math.pow(TIME_SCALE * dt, TIME_EXPONENT)
 }
 
 type NoteHistogramState = {
   openNotes: Record<MidiNote, HistogramDatum>
   shortContext: List<HistogramDatum>
-  longContext: HistogramBuckets
+  longContext: NoteHistogramBuckets
   
   /**
    * The current state of the histogram.
    * Recompute this by calling calculate with the current timestamp.
    */
-  computed: HistogramBuckets
+  computed: NoteHistogramBuckets
 
   /**
    * What is the total magnitude of the computed histogram?
@@ -179,18 +166,20 @@ export const useNoteHistogram = create<NoteHistogramStateAndMutators>()(
 
       calculate: (currentTimestampMs: number) =>
         set((state) => {
-          const computed: HistogramBuckets = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+          if (state.shortContext.isEmpty()) return {}
+
+          const computed: NoteHistogramBuckets = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
           // move items from short context to long context
           // we'll only consider notes that are closed
           let longContextTotal = 0
-          const longContext: HistogramBuckets = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+          const longContext: NoteHistogramBuckets = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
           for (let i = 0; i < 12; ++i) {
             longContext[i] = state.longContext[i]
             longContextTotal += longContext[i]
           }
-          const [shortContext, moveToLongContext] = state.shortContext
-            .partition(d => d.endMs !== undefined && d.endMs + LONG_CONTEXT_MS > currentTimestampMs)
+          const [moveToLongContext, shortContext] = state.shortContext
+            .partition(d => d.endMs === undefined || d.endMs + LONG_CONTEXT_MS > currentTimestampMs)
           moveToLongContext.forEach((d) => {
             const w = weight(d, currentTimestampMs)
             longContext[bucketIndex(d.midiNote)] += w
@@ -205,12 +194,9 @@ export const useNoteHistogram = create<NoteHistogramStateAndMutators>()(
           })
 
           // now the long context
-          const longContextScale = longContextTotal > LONG_CONTEXT_MAX_MAGNITUDE
-            ? LONG_CONTEXT_MAX_MAGNITUDE / longContextTotal
-            : 1.0
           let magnitude = 0
           for (let i = 0; i < 12; ++i) {
-            computed[i] += longContext[i] * longContextScale
+            computed[i] += longContext[i]
             magnitude += computed[i]
           }
 

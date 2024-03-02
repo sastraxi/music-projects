@@ -101,3 +101,18 @@ export const relativeToFirst = (arr: Readonly<Array<number>>) =>
 
 export const unique = <T>(arr: Array<T>) =>
   arr.filter((item, index, self) => self.indexOf(item) === index)
+
+export const range = (count: number): number[] => Array.from(Array(count).keys())
+
+export const sum = (arr: number[]) => arr.reduce((acc, val) => acc + val, 0)
+
+export const rotate = function<T>(arr: Array<T>, n: number) {
+  n = n % arr.length;
+  return arr.slice(n, arr.length).concat(arr.slice(0, n));
+}
+
+export const pairwiseMultiply = (a: number[], b: number[]) =>
+  a.reduce(
+    (accum, _, i) => accum + a[i] * b[i],
+    0
+  )

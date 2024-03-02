@@ -1,3 +1,4 @@
+import { Progress } from "@nextui-org/react";
 import {
   Table,
   TableHeader,
@@ -18,23 +19,33 @@ const NoteHistogram = ({
   timeOffset: number
 }) => {
   const { calculate, computed, magnitude } = useNoteHistogram()
-  let divisor = magnitude === 0 ? 1 : magnitude
+  let factor = magnitude === 0 ? 1 : (1 / magnitude)
 
   useEffect(() => {
     const intervalId = setInterval(() => {
-
+      calculate(performance.now() + timeOffset)
     }, HISTOGRAM_REFRESH_MS)
     return () => clearInterval(intervalId)
   }, [])
 
   const noteRows = []
   for (let i = 0; i < 12; ++i) {
+    const noteName = noteForDisplay(noteFromMidi(i), { showOctave: false }) 
     noteRows.push(
       <TableRow key={i}>
         <TableCell>
-          { noteForDisplay(noteFromMidi(i), { showOctave: false }) }
+          { noteName }
         </TableCell>
-        <TableCell>CEO</TableCell>
+        <TableCell>
+          <Progress
+            aria-label={noteName}
+            size="md"
+            value={computed[i] * factor}
+            className="max-w-md"
+            minValue={0}
+            maxValue={1}
+          />
+        </TableCell>
       </TableRow>
     )
   }

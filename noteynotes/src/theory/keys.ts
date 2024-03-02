@@ -1,7 +1,8 @@
 import { Interval, PcSet } from "tonal"
-import { DEFAULT_RESTRICTED_MODES, MAJOR_MODES_BY_DEGREE, MAJOR_SCALES, Note, ScaleName, noteNameEquals } from "./common"
+import { DEFAULT_RESTRICTED_MODES, MAJOR_MODES_BY_DEGREE, MAJOR_SCALES, NUM_DEGREES, Note, ScaleName, noteNameEquals, noteToMidi } from "./common"
 import { ALL_GUITAR_CHORDS, ExplodedChord, getGuitarNotes } from "../instrument/guitar"
 import { getTriadNotes } from "./triads"
+import { pairwiseMultiply, range, rotate, sum } from "../util"
 
 export type ChordSearchParams = {
   /**
@@ -15,6 +16,16 @@ export type ChordAndAccidentals = {
   chord: ExplodedChord
   accidentalScaleDegreesWithOctaves: number[]
 }
+
+/**
+ * 12-bucket histogram, one for each note in the octave.
+ * Starts at C.
+ */
+export type NoteHistogramBuckets = [
+  number, number, number, number,
+  number, number, number, number,
+  number, number, number, number,
+]
 
 /**
  * How many semitones are between the two given notes?
@@ -117,4 +128,63 @@ export const keysIncludingChord = (
   }
 
   return matchingScales
+}
+
+export type LikelyKey = {
+  note: Note,
+  mode: string,
+  score: number
+}
+
+/**
+ * In order to detect which mode is most likely for a given major scale,
+ * we move this pattern across the note frequencies of the histogram.
+ * In fact the whole key guessing game could probably be done as a series of matrix multiplications.
+ */
+const SCORE_MODIFIER_BY_RELATIVE_DEGREE = [
+  1.0, -1.0, 1.0, 0.2, 0.8, -1.0, 0.5
+]
+
+/**
+ * N.B. only does keys based on the major scales right now.
+ */
+export const guessKey = (
+  histogram: NoteHistogramBuckets,
+  {
+    minInternalScore,
+    scaleFactor,
+  }: {
+    minInternalScore?: number
+    scaleFactor?: number
+  } = {}
+): LikelyKey[] => {
+  const result: LikelyKey[] = []  
+
+  // scale: each of the 12 major scales around circle of fifths
+  for (const scaleNotes of Object.values(MAJOR_SCALES)) {
+    const degreeFreq = (degree: number) => histogram[noteToMidi(scaleNotes[degree]) % 12]
+    const scaleFrequencies = range(NUM_DEGREES).map(degreeFreq)
+    const scores: number[] = range(NUM_DEGREES).map((degree) => {
+      const weightVector = rotate(SCORE_MODIFIER_BY_RELATIVE_DEGREE, degree)
+      return pairwiseMultiply(scaleFrequencies, weightVector)
+    })
+    
+    // throw out unlikely keys
+    const potentials = scores.map((score, degree) => ({
+      mode: MAJOR_MODES_BY_DEGREE[degree],
+      note: scaleNotes[degree],
+      score,
+    })).filter(x =>
+      x.score > 0 &&
+      x.score >= (minInternalScore ?? -Infinity)
+    )
+
+    result.push(...potentials)
+  }
+
+  // normalize scores (treat as "probability")
+  const totalScore = sum(result.map(x => x.score))
+  return result
+    .map((x) => ({ ...x, score: x.score / totalScore}))
+    .sort((a, b) => a.score - b.score)
 }

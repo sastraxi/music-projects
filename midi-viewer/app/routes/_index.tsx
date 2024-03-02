@@ -20,7 +20,7 @@ export const meta: MetaFunction = () => {
 export default function Index() {
   const [pendingChord, setPendingChord] = useState<FullChord | undefined>()
   const [tapTimestamps, setTapTimestamps] = useState<number[]>([])
-  const [timeOffset, setTimeOffset] = useState<number | undefined>()
+  const [timeOffset, setTimeOffset] = useState<number | undefined>(0)
   const { sortedNotes, noteSet, includeNote, excludeNote, reset: resetNotes } = useNoteSet()
   const { chords, push, reset: resetChords, removeChord } = useChords()
   const { reset: resetHistogram, noteOn, noteOff } = useNoteHistogram()
@@ -33,9 +33,9 @@ export default function Index() {
     const [command, midiNote, velocity] = msg.data
     
     // try to follow the midi clock
-    if (timeOffset === undefined) {
-      setTimeOffset(msg.timeStamp - performance.now())
-    }
+    // if (timeOffset === undefined) {
+    //   setTimeOffset(msg.timeStamp - performance.now())
+    // }
 
     if (command === 144 && velocity > 0) {
       // turn this note on
@@ -57,6 +57,7 @@ export default function Index() {
   // TODO: callback should live outside of zustand and just be mounted / unmounted here
   // if the callback function is static we won't have duplicated notes
   // need to figure out how to interact with zustand outside of hooks
+  // FIXME: for now, we've just disabled strict mode
   useEffect(() => {
     return listenForMidi(midiCallback)
   }, [])
@@ -96,9 +97,7 @@ export default function Index() {
     .map(note => noteForDisplay(note, { showOctave: true }))
     .join(', ')
 
-
   const toggleNote = (note: Note, timestamp: number) => {
-    console.log('togle', timestamp)
     if (!hasNote(note)) {
       includeNote(note, timestamp)
     } else {
@@ -153,7 +152,7 @@ export default function Index() {
           Note histogram
         </h1>
         <div className="flex space-x-2">
-          <Button size="md" color="danger" className="bg-pink-800" onClick={resetChords}>
+          <Button size="md" color="danger" className="bg-pink-800" onClick={resetHistogram}>
             Reset
           </Button>
         </div>
@@ -167,7 +166,7 @@ export default function Index() {
           Chord history
         </h1>
         <div className="flex space-x-2">
-          <Button size="md" color="danger" className="bg-pink-800" onClick={resetHistogram} isDisabled={chords.length === 0}>
+          <Button size="md" color="danger" className="bg-pink-800" onClick={resetChords} isDisabled={chords.length === 0}>
             Clear all
           </Button>
         </div>
