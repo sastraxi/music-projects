@@ -186,6 +186,9 @@ importers:
       framer-motion:
         specifier: ^10.15.0
         version: 10.18.0(react-dom@18.2.0)(react@18.2.0)
+      immutable:
+        specifier: 5.0.0-beta.5
+        version: 5.0.0-beta.5
       isbot:
         specifier: ^4.4.0
         version: 4.4.0
@@ -8235,6 +8238,10 @@ packages:
     resolution: {integrity: sha512-5Fytz/IraMjqpwfd34ke28PTVMjZjJG2MPn5t7OE4eUCUNf8BAa7b5WUS9/Qvr6mwOQS7Mk6vdsMno5he+T8Xw==}
     engines: {node: '>= 4'}
     dev: true
+
+  /immutable@5.0.0-beta.5:
+    resolution: {integrity: sha512-1RO6wxfJdh/uyWb2MTn3RuCPXYmpRiAhoKm8vEnA50+2Gy0j++6GBtu5q6sq2d4tpcL+e1sCHzk8NkWnRhT2/Q==}
+    dev: false
 
   /import-fresh@3.3.0:
     resolution: {integrity: sha512-veYYhQa+D1QBKznvhUHxb8faxlrwUnxseDAbAp457E0wLNio2bOSKnjYDhMj+YiAq61xrMGhQk9iXVk5FzgQMw==}

@@ -26,7 +26,7 @@ const sortPred = (a: Note, b: Note) => noteToMidi(a) - noteToMidi(b)
 
 export const useNoteSet = create<NoteSetStateAndMutators>()(
   persist(
-    (set, get) => ({
+    (set) => ({
       ...INITIAL_STATE,
       
       reset: () => set(() => INITIAL_STATE),
