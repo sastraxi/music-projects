@@ -60,7 +60,20 @@ export const useNoteSet = create<NoteSetStateAndMutators>()(
     }),
     {
       name: 'midi-viewer-notes',
-      storage: createJSONStorage(() => localStorage)
+      storage: createJSONStorage(() => localStorage, {
+        reviver: (key, value: any) => {
+          if (value?._zustand_type === 'set') {
+            return new Set(value.value)
+          }
+          return value
+        },
+        replacer: (key, value) => {
+          if (value instanceof Set) {
+            return { _zustand_type: 'set', value: Array.from(value) }
+          }
+          return value
+        },
+      })
     }
   )
 )

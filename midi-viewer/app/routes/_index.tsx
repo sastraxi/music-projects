@@ -50,6 +50,9 @@ export default function Index() {
     }
   }, [])
 
+  // TODO: callback should live outside of zustand and just be mounted / unmounted here
+  // if the callback function is static we won't have duplicated notes
+  // need to figure out how to interact with zustand outside of hooks
   useEffect(() => {
     return listenForMidi(midiCallback)
   }, [])
@@ -73,7 +76,6 @@ export default function Index() {
   }, [sortedNotes])
 
   // next:
-  // TODO: "long context" --> guessed scale based on recent notes
   // TODO: "long context" --> guessed key based on scale + tonal centre? note movement / clustering?
   // TODO: show function of recent chord in key context
   // TODO: needs a different approach to chords where we can have monads and dyads + build on top of what's there
