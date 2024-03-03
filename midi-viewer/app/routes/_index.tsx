@@ -1,4 +1,4 @@
-import { Button, Card, CardBody, CardHeader, Spacer } from "@nextui-org/react";
+import { Button, Card, CardBody, CardHeader, Spacer, Switch } from "@nextui-org/react";
 import type { MetaFunction } from "@remix-run/node";
 import { Note, noteFromMidi,  chordForDisplay, detectChord, FullChord, noteForDisplay } from "noteynotes";
 import { useCallback, useEffect, useState } from "react";
@@ -18,14 +18,13 @@ export const meta: MetaFunction = () => {
 };
 
 export default function Index() {
+  const [isLatching, setLatching] = useState<boolean>(false)
   const [pendingChord, setPendingChord] = useState<FullChord | undefined>()
   const [tapTimestamps, setTapTimestamps] = useState<number[]>([])
   const [timeOffset, setTimeOffset] = useState<number | undefined>(0)
-  const { sortedNotes, noteSet, includeNote, excludeNote, reset: resetNotes } = useNoteSet()
+  const { sortedNotes, noteSet, includeNote, excludeNote, toggleNote, reset: resetNotes } = useNoteSet()
   const { chords, push, reset: resetChords, removeChord } = useChords()
-  const { noteOn, noteOff, reset: resetHistogram, maximum: histogramMaximum } = useNoteHistogram()
-
-  const hasNote = (note: Note) => noteSet.has(note)
+  const { noteOn, noteOff, noteInstant, reset: resetHistogram, maximum: histogramMaximum } = useNoteHistogram()
 
   const pushTap = (ts: number) => setTapTimestamps(prev => [...prev, ts])
 
@@ -38,29 +37,35 @@ export default function Index() {
     // }
 
     if (command === 144 && velocity > 0) {
-      // turn this note on
+      // note on
       const note = noteFromMidi(midiNote)
       noteOn(note, msg.timeStamp)
-      includeNote(note, msg.timeStamp)
+      if (isLatching) {
+        toggleNote(note)
+      } else {
+        includeNote(note)
+      }
 
     } else if (command === 144 && velocity === 0) {
-      // note off; only connected to histogram for now
+      // note off
       const note = noteFromMidi(midiNote)
       noteOff(note, msg.timeStamp)
+      if (!isLatching) {
+        excludeNote(note)
+      }
 
     } else if (command === 176 && midiNote === 64 && velocity > 0) {
       // sustain pedal; use it to switch chords for now
       pushTap(msg.timeStamp)
     }
-  }, [])
+  }, [isLatching, toggleNote])
 
   // TODO: callback should live outside of zustand and just be mounted / unmounted here
   // if the callback function is static we won't have duplicated notes
   // need to figure out how to interact with zustand outside of hooks
-  // FIXME: for now, we've just disabled strict mode
   useEffect(() => {
     return listenForMidi(midiCallback)
-  }, [])
+  }, [midiCallback])
 
   useEffect(() => {
     if (tapTimestamps.length === 0) return
@@ -97,14 +102,6 @@ export default function Index() {
     .map(note => noteForDisplay(note, { showOctave: true }))
     .join(', ')
 
-  const toggleNote = (note: Note, timestamp: number) => {
-    if (!hasNote(note)) {
-      includeNote(note, timestamp)
-    } else {
-      excludeNote(note)
-    }
-  }
-
   return (
     <OneUpContainer>
       <div className="flex flex-row justify-between items-center">
@@ -112,6 +109,9 @@ export default function Index() {
           MIDI chord visualizer
         </h1>
         <div className="flex space-x-2">
+          <Switch isSelected={isLatching} onValueChange={setLatching} classNames={{ base: "flex-row-reverse", label: "mr-2" }}>
+            Latch
+          </Switch>
           <Button
             size="lg"
             color="primary"
@@ -137,7 +137,10 @@ export default function Index() {
       <div className="mt-4">
         <Piano
           highlighted={sortedNotes}
-          onClick={note => toggleNote(note, performance.now() + (timeOffset ?? 0))}
+          onClick={note => { 
+            toggleNote(note)
+            noteInstant(note, performance.now() + (timeOffset ?? 0), 100)
+          }}
         />
       </div>
 
