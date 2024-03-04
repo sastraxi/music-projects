@@ -1,5 +1,5 @@
-import { Button, Slider } from "@nextui-org/react";
-import { decimal, guessKey, noteForDisplay, noteFromMidi } from "noteynotes";
+import { Slider } from "@nextui-org/react";
+import { decimal, detectKey, noteForDisplay, noteFromMidi } from "noteynotes";
 import { useEffect, useMemo } from "react";
 import { useNoteHistogram } from "~/state/note-histogram";
 
@@ -22,7 +22,7 @@ const NoteHistogram = ({
 
   const guessedKeys = useMemo(() => {
     if (maximum === 0) return []
-    return guessKey(computed).slice(0, 5)
+    return detectKey(computed).slice(0, 5)
   }, [computed])
 
   if (guessedKeys.length === 0) return <></>
@@ -56,7 +56,7 @@ const NoteHistogram = ({
 
   return (
     <div className="flex flex-row w-full">
-      <div className="flex flex-row mr-4">
+      <div className="flex flex-row mr-6">
         {noteColumns}
       </div>
       <div>
@@ -71,12 +71,12 @@ const NoteHistogram = ({
               {guessedKeys.map((guess, i) => {
                 if (i === 0) return
                 return (
-                  <>
+                  <span key={i}>
                     { (i > 1) ? <span className="text-gray-700 px-1" key={`${i}-em`}>…</span> : '' }
                     <span className="text-gray-500" key={i}>
                       {guess.note} {guess.mode} ({decimal(100 * guess.score)}%)
                     </span>
-                  </>
+                  </span>
                 )    
               })}
             </span>

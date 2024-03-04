@@ -109,7 +109,11 @@ export default function Index() {
           MIDI chord visualizer
         </h1>
         <div className="flex space-x-2">
-          <Switch isSelected={isLatching} onValueChange={setLatching} classNames={{ base: "flex-row-reverse", label: "mr-2" }}>
+          <Switch
+            isSelected={isLatching}
+            onValueChange={latching => { setLatching(latching); if (!latching) resetNotes() }}
+            classNames={{ base: "flex-row-reverse", label: "mr-2" }}
+          >
             Latch
           </Switch>
           <Button
@@ -152,7 +156,7 @@ export default function Index() {
 
       <div className="flex flex-row justify-between items-center mt-8 mb-4">
         <h1 className="text-xl">
-          Note histogram
+          Detected key
         </h1>
         <div className="flex space-x-2">
           <Button size="md" onClick={resetHistogram} isDisabled={histogramMaximum === 0}>

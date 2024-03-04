@@ -106,7 +106,7 @@ export const range = (count: number): number[] => Array.from(Array(count).keys()
 
 export const sum = (arr: number[]) => arr.reduce((acc, val) => acc + val, 0)
 
-export const rotate = function<T>(arr: Array<T>, n: number) {
+export const rotate = function<T>(arr: ReadonlyArray<T>, n: number) {
   n = n % arr.length;
   return arr.slice(n, arr.length).concat(arr.slice(0, n));
 }
@@ -121,3 +121,6 @@ export const decimal = (n: number, places: number = 2) => {
   const decpow = Math.pow(10, places)
   return (Math.round(n * decpow) / decpow).toFixed(places);
 }
+
+export const eq = <T>(a: ReadonlyArray<T>, b: ReadonlyArray<T>): boolean =>
+  a.every((val, idx) => val === b[idx])

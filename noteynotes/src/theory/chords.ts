@@ -4,7 +4,10 @@ import { AUGMENTED_TRIAD, DIMINISHED_TRIAD, MAJOR_DIM_TRIAD, MAJOR_TRIAD, MINOR_
 import { Chord, ExplodedChord, explodeChord } from "../instrument/guitar"
 import { Interval, distance, interval, transpose, Note as TonalNote } from "tonal"
 
-type ChordType = {
+/**
+ * A member of the CHORD_LIBRARY
+ */
+export type ChordType = {
   /**
    * What names are this chord known by?
    * e.g. a major diminished chord is known by both "b5" and "alt"
@@ -29,19 +32,20 @@ export type FullChord = {
   rootNote: Note
   bassNote?: Note
   type: ChordType
+  extraIntervals?: number[]
 }
 
 export const ALL_CHORD_NAMES: Array<string> = []
-const CHORD_LIBRARY: Record<string, ChordType> = {}
+export const CHORD_LIBRARY: Record<string, ChordType> = {}
 {
   const add = (names: string[], baseTriad: Triad, extensions?: number[]) => {
     const chordType = { names, baseTriad, extensions }
-    chordType.names.forEach((key) => {
-      if (key in CHORD_LIBRARY) throw new Error(`Duplicate chord type name: ${key}`)
-      CHORD_LIBRARY[key] = chordType
+    chordType.names.forEach((name) => {
+      if (name in CHORD_LIBRARY) throw new Error(`Duplicate chord type name: ${name}`)
+      CHORD_LIBRARY[name] = chordType
       CONSIDERED_NOTE_NAMES.forEach((note) => {
         // N.B. we won't enumerate over chords
-        ALL_CHORD_NAMES.push(`${note} ${key}`)
+        ALL_CHORD_NAMES.push(`${note} ${name}`)
       })
     })
 
@@ -160,5 +164,6 @@ export const chordForDisplay = (chord: FullChord, context: NoteDisplayContext = 
   const root = noteForDisplay(chord.rootNote, context)
   const over = chord.bassNote ? `/${noteForDisplay(chord.bassNote, context)}` : ''
   const space = context.compact ? ' ' : ''
-  return `${root}${space}${name}${over}`
+  const extra = chord.extraIntervals?.length ? ` +${chord.extraIntervals.join(',')}` : ''
+  return `${root}${space}${name}${over}${extra}`
 }
