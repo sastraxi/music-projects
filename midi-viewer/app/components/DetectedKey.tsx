@@ -1,16 +1,18 @@
 import { Slider } from "@nextui-org/react";
 import { decimal, detectKey, noteForDisplay, noteFromMidi } from "noteynotes";
 import { useEffect, useMemo } from "react";
+import { useKey } from "~/state/key";
 import { useNoteHistogram } from "~/state/note-histogram";
 
 const HISTOGRAM_REFRESH_MS = 1000
 
-const NoteHistogram = ({
+const DetectedKey = ({
   timeOffset
 }: {
   timeOffset: number
 }) => {
   const { calculate, computed, maximum, reset: resetHistogram } = useNoteHistogram()
+  const { setGuesses, chosenKey } = useKey()
   let factor = maximum === 0 ? 1 : (1 / maximum)
 
   useEffect(() => {
@@ -21,19 +23,22 @@ const NoteHistogram = ({
   }, [])
 
   const guessedKeys = useMemo(() => {
-    if (maximum === 0) return []
-    return detectKey(computed).slice(0, 5)
+    const guesses = maximum === 0 ? [] : detectKey(computed).slice(0, 5)
+    return guesses
   }, [computed])
+
+  useEffect(() => {
+    setGuesses(guessedKeys)
+  }, [guessedKeys])
 
   if (guessedKeys.length === 0) return <></>
 
   // TODO: report the key to zustand so places in the UI can use it as displayContext
   // TODO: move key guessing + interval out of react; just subscribe to enable / disable a pure JS thing
-  // TODO: highlight notes in best-guess key
-
   const noteColumns = []
   for (let i = 0; i < 12; ++i) {
-    const noteName = noteForDisplay(noteFromMidi(i), { showOctave: false }) 
+    // TODO: highlight notes in chosenKey
+    const noteName = noteForDisplay(noteFromMidi(i), { showOctave: false, keyName: chosenKey }) 
     noteColumns.push(
       <Slider   
         size="md"
@@ -63,7 +68,7 @@ const NoteHistogram = ({
         { guessedKeys.length > 0 && (
           <>
             <h1 className="text-2xl" key="first-guess">
-              {guessedKeys[0].note} {guessedKeys[0].mode}
+              {noteForDisplay(guessedKeys[0].note)} {guessedKeys[0].mode}
               &nbsp;
               <span className="text-gray-500">({decimal(100 * guessedKeys[0].score)}%)</span>
             </h1>
@@ -74,7 +79,7 @@ const NoteHistogram = ({
                   <span key={i}>
                     { (i > 1) ? <span className="text-gray-700 px-1" key={`${i}-em`}>…</span> : '' }
                     <span className="text-gray-500" key={i}>
-                      {guess.note} {guess.mode} ({decimal(100 * guess.score)}%)
+                      {noteForDisplay(guess.note)} {guess.mode} ({decimal(100 * guess.score)}%)
                     </span>
                   </span>
                 )    
@@ -88,4 +93,4 @@ const NoteHistogram = ({
   )
 }
 
-export default NoteHistogram
+export default DetectedKey

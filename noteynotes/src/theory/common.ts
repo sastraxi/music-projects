@@ -110,9 +110,7 @@ MAJOR_KEY_NAMES.forEach((keyName) => {
   MAJOR_SCALES[rootNote] = keynameToNotes(keyName)
   MAJOR_SCALES[rootNote].forEach((note, degree) => {
     const mode = MAJOR_MODES_BY_DEGREE[degree]
-    if (!DEFAULT_RESTRICTED_MODES.includes(mode)) {
-      KEY_NAMES_BASED_ON_MAJOR.push(`${note} ${mode}`)
-    }
+    KEY_NAMES_BASED_ON_MAJOR.push(`${note} ${mode}`)
   })
 })
 

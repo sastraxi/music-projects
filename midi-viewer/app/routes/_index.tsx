@@ -2,9 +2,10 @@ import { Button, Card, CardBody, CardHeader, Spacer, Switch } from "@nextui-org/
 import type { MetaFunction } from "@remix-run/node";
 import { Note, noteFromMidi,  chordForDisplay, detectChord, FullChord, noteForDisplay } from "noteynotes";
 import { useCallback, useEffect, useState } from "react";
-import NoteHistogram from "~/components/NoteHistogram";
+import DetectedKey from "~/components/DetectedKey";
 import { listenForMidi } from "~/midi";
 import { useChords } from "~/state/chords";
+import { useKey } from "~/state/key";
 import { useNoteHistogram } from "~/state/note-histogram";
 import { useNoteSet } from "~/state/note-set";
 import OneUpContainer from "~/view/OneUpContainer";
@@ -25,6 +26,7 @@ export default function Index() {
   const { sortedNotes, noteSet, includeNote, excludeNote, toggleNote, reset: resetNotes } = useNoteSet()
   const { chords, push, reset: resetChords, removeChord } = useChords()
   const { noteOn, noteOff, noteInstant, reset: resetHistogram, maximum: histogramMaximum } = useNoteHistogram()
+  const { chosenKey } = useKey()
 
   const pushTap = (ts: number) => setTapTimestamps(prev => [...prev, ts])
 
@@ -88,7 +90,6 @@ export default function Index() {
   // next:
   // TODO: "long context" --> guessed key based on scale + tonal centre? note movement / clustering?
   // TODO: show function of recent chord in key context
-  // TODO: needs a different approach to chords where we can have monads and dyads + build on top of what's there
   // TODO: checkmark on UI when chords is locked in
 
   // later:
@@ -99,7 +100,7 @@ export default function Index() {
   // TODO: record their history (per base chord) and show them on the UI (MIDI)
 
   const notesString = Array.from(sortedNotes)
-    .map(note => noteForDisplay(note, { showOctave: true }))
+    .map(note => noteForDisplay(note, { showOctave: true, keyName: chosenKey }))
     .join(', ')
 
   return (
@@ -135,7 +136,9 @@ export default function Index() {
       </div>
 
       <div className="text-8xl flex justify-center bg-pink-950 p-16 rounded-xl my-4">
-        <span style={{ textShadow: "6px 6px 0px rgba(0,0,0,0.4)" }}>{pendingChord ? chordForDisplay(pendingChord) : "--"}</span>
+        <span style={{ textShadow: "6px 6px 0px rgba(0,0,0,0.4)" }}>
+          {pendingChord ? chordForDisplay(pendingChord, { keyName: chosenKey }) : "--"}
+        </span>
       </div>
 
       <div className="mt-4">
@@ -165,7 +168,7 @@ export default function Index() {
         </div>
       </div>
       { timeOffset !== undefined &&
-        <NoteHistogram timeOffset={timeOffset} />
+        <DetectedKey timeOffset={timeOffset} />
       }
   
       <div className="flex flex-row justify-between items-center mt-8">
@@ -187,7 +190,7 @@ export default function Index() {
         {chords.map((chord, index) => (
           <Card key={index}>
             <CardHeader className="justify-between">
-              <p className="text-2xl">{chordForDisplay(chord)}</p>
+              <p className="text-2xl">{chordForDisplay(chord, { keyName: chosenKey })}</p>
               <Button isIconOnly size="sm" title="Delete" onClick={() => removeChord(index)}>
                 ✕
               </Button>
