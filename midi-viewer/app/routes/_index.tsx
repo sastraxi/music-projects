@@ -1,5 +1,5 @@
-import { Button, Card, CardBody, CardHeader, Spacer, Switch } from "@nextui-org/react";
-import type { MetaFunction } from "@remix-run/node";
+import { Button, Card, CardHeader, Switch } from "@nextui-org/react";
+import type { MetaFunction } from "@remix-run/cloudflare";
 import { Note, noteFromMidi,  chordForDisplay, detectChord, FullChord, noteForDisplay } from "noteynotes";
 import { useCallback, useEffect, useState } from "react";
 import DetectedKey from "~/components/DetectedKey";

@@ -1,26 +1,19 @@
-import { cssBundleHref } from "@remix-run/css-bundle";
-import type { LinksFunction } from "@remix-run/node";
 import {
   Links,
-  LiveReload,
   Meta,
   Outlet,
   Scripts,
   ScrollRestoration,
-} from "@remix-run/react";
-
+} from "@remix-run/react"
+import stylesheet from '~/tailwind.css?url'
+import { LinksFunction } from "@remix-run/cloudflare"
 import { NextUIProvider } from "@nextui-org/react"
-import stylesheet from '~/tailwind.css';
 
 export const links: LinksFunction = () => [
   { rel: "stylesheet", href: stylesheet },
-];
+]
 
-// export const links: LinksFunction = () => [
-//   ...(cssBundleHref ? [{ rel: "stylesheet", href: cssBundleHref }] : []),
-// ];
-
-export default function App() {
+export function Layout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <head>
@@ -29,16 +22,19 @@ export default function App() {
         <Meta />
         <Links />
       </head>
-      <body>
-        <NextUIProvider>
-          <main className="min-h-screen dark text-foreground bg-background">
-            <Outlet />
-            <ScrollRestoration />
-            <Scripts />
-            <LiveReload />
-          </main>
-        </NextUIProvider>
+      <body>        
+        <main className="min-h-screen dark text-foreground bg-background">
+          <NextUIProvider>
+            {children}
+          </NextUIProvider>
+        </main>
+        <ScrollRestoration />
+        <Scripts />
       </body>
     </html>
-  );
+  )
+}
+
+export default function App() {
+  return <Outlet />
 }
