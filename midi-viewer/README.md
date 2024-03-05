@@ -4,5 +4,5 @@ View chords you're playing over Web MIDI. Go to the next chord by tapping your s
 
 ## Next steps
 
-- force a reload
+- force a reload again!
 
