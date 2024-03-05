@@ -46,3 +46,8 @@ npm run deploy
 ```
 
 [bindings]: https://developers.cloudflare.com/pages/functions/bindings/
+
+## Consider...
+
+- https://github.com/cloudflare/workers-sdk/issues/3259#issuecomment-1944802677
+

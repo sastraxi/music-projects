@@ -1,8 +1,10 @@
 import { Button, Card, CardHeader, Switch } from "@nextui-org/react";
 import type { MetaFunction } from "@remix-run/cloudflare";
+import MIDISounds, { type MIDISoundPlayer } from "midi-sounds-react"
 import { Note, noteFromMidi,  chordForDisplay, detectChord, FullChord, noteForDisplay } from "noteynotes";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import DetectedKey from "~/components/DetectedKey";
+import PlayButton from "~/components/PlayButton";
 import { listenForMidi } from "~/midi";
 import { useChords } from "~/state/chords";
 import { useKey } from "~/state/key";
@@ -10,6 +12,7 @@ import { useNoteHistogram } from "~/state/note-histogram";
 import { useNoteSet } from "~/state/note-set";
 import OneUpContainer from "~/view/OneUpContainer";
 import Piano from "~/view/Piano";
+
 
 export const meta: MetaFunction = () => {
   return [
@@ -27,6 +30,8 @@ export default function Index() {
   const { chords, push, reset: resetChords, removeChord } = useChords()
   const { noteOn, noteOff, noteInstant, reset: resetHistogram, maximum: histogramMaximum } = useNoteHistogram()
   const { chosenKey } = useKey()
+
+  const midiSounds = useRef<MIDISoundPlayer>()
 
   const pushTap = (ts: number) => setTapTimestamps(prev => [...prev, ts])
 
@@ -105,6 +110,9 @@ export default function Index() {
 
   return (
     <OneUpContainer>
+      <div style={{ display: "none" }}>
+        <MIDISounds ref={midiSounds} />
+      </div>
       <div className="flex flex-row justify-between items-center">
         <h1 className="text-2xl">
           MIDI chord visualizer
@@ -138,6 +146,16 @@ export default function Index() {
       <div className="text-8xl flex justify-center bg-pink-950 p-16 rounded-xl my-4">
         <span style={{ textShadow: "6px 6px 0px rgba(0,0,0,0.4)" }}>
           {pendingChord ? chordForDisplay(pendingChord, { keyName: chosenKey }) : "--"}
+          {pendingChord && midiSounds.current && (
+            <PlayButton
+              instrument={1}
+              notes={sortedNotes}
+              strumDurationMs={500}
+              strumDown={true}
+              activeDurationMs={1500}
+              player={midiSounds.current}
+            />
+          )}
         </span>
       </div>
 
