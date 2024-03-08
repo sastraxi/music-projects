@@ -1,6 +1,6 @@
 import { Button, Card, CardHeader, Switch } from "@nextui-org/react";
 import type { MetaFunction } from "@remix-run/cloudflare";
-import { noteFromMidi, chordForDisplay, detectChord, FullChord, noteForDisplay, detectKey, toKeyName } from "noteynotes";
+import { noteFromMidi, chordForDisplay, detectChord, FullChord, noteForDisplay, detectKey, toKeyName, getRomanNumeral, toBasicChord, isDiatonic } from "noteynotes";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import DetectedKey from "~/components/DetectedKey";
 import { listenForMidi } from "~/midi";
@@ -189,7 +189,12 @@ export default function Index() {
         {chords.map((chord, index) => (
           <Card key={index}>
             <CardHeader className="justify-between">
-              <p className="text-2xl">{chordForDisplay(chord, { keyName })}</p>
+              <p className="text-2xl">
+                {chordForDisplay(chord, { keyName })}
+                {keyName && <span className={isDiatonic(chord, keyName) ? "ml-2" : "bg-red-700 rounded-md ml-2 pr-2"}>
+                  &nbsp;{getRomanNumeral(keyName, toBasicChord(chord))}
+                </span>}
+              </p>
               <Button isIconOnly size="sm" title="Delete" onClick={() => removeChord(index)}>
                 ✕
               </Button>

@@ -1,7 +1,8 @@
 import { Interval, PcSet } from "tonal"
-import { ALL_GUITAR_CHORDS, ExplodedChord, getGuitarNotes } from "../instrument/guitar"
-import { DEFAULT_RESTRICTED_MODES, MAJOR_MODES_BY_DEGREE, MAJOR_SCALES, Note, ScaleName, noteNameEquals } from "./common"
+import { ALL_GUITAR_CHORDS, Chord, ExplodedChord, explodeChord, getGuitarNotes } from "../instrument/guitar"
+import { DEFAULT_RESTRICTED_MODES, MAJOR_MODES_BY_DEGREE, MAJOR_SCALES, Note, ScaleName, keynameToNotes, normalizedNoteName, noteNameEquals } from "./common"
 import { getTriadNotes } from "./triads"
+import { FullChord, getBasicChordNotes } from "./chords"
 
 export type ChordSearchParams = {
   /**
@@ -127,4 +128,13 @@ export const keysIncludingChord = (
   }
 
   return matchingScales
+}
+
+/**
+ * Is the given chord diatonic in the key?
+ */
+export const isDiatonic = (chord: FullChord, keyName: string) => {
+  const chordNotes = getBasicChordNotes(chord).map(normalizedNoteName)
+  const keyNotes = keynameToNotes(keyName).map(normalizedNoteName)
+  return chordNotes.every(x => keyNotes.includes(x))
 }

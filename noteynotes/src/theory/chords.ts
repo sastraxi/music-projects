@@ -167,3 +167,9 @@ export const chordForDisplay = (chord: FullChord, context: NoteDisplayContext = 
   const extra = chord.extraIntervals?.length ? ` +${chord.extraIntervals.join(',')}` : ''
   return `${root}${space}${name}${over}${extra}`
 }
+
+/**
+ * Throws away extra intervals + bass note.
+ */
+export const toBasicChord = (chord: FullChord): Chord =>
+  `${chord.rootNote} ${chord.type.names[0]}`
