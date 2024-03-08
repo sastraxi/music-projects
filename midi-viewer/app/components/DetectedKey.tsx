@@ -3,6 +3,7 @@ import { decimal, keyEq, keyForDisplay, toKeyName, noteForDisplay, noteFromMidi 
 import { useEffect } from "react";
 import { useKey } from "~/state/key";
 import { useNoteHistogram } from "~/state/note-histogram";
+import { remove } from "~/util";
 
 const HISTOGRAM_REFRESH_MS = 1000
 
@@ -52,7 +53,7 @@ const DetectedKey = ({
   }
 
   const hasGuess = guessedKeys && guessedKeys?.length > 0
-  const chosenKeyIsFirst = chosenKey && hasGuess && keyEq(chosenKey, guessedKeys[0])
+  const chosenIndex = chosenKey ? guessedKeys?.findIndex(x => keyEq(x, chosenKey)) ?? -1 : -1
 
   return (
     <div className="flex flex-row w-full">
@@ -63,19 +64,19 @@ const DetectedKey = ({
         { chosenKey && (
           <h1 className="text-2xl" key="chosen-key">
             {keyForDisplay(chosenKey)}
-            &nbsp;
-            <span className="text-gray-500">({decimal(100 * chosenKey.score)}%)</span>
+            {/* the match % is meaningless in the chosen key; need to grab from the array if it's there */}
+            {chosenIndex !== -1 && guessedKeys &&
+              <span className="text-gray-500">&nbsp;({decimal(100 * guessedKeys[chosenIndex].score)}%)</span>
+            }
           </h1>
         )}
         { hasGuess && (
           <>
             <span className="text-sm" key="other-guesses">
-              {guessedKeys.map((guess, i) => {
-                if (i === 0 && chosenKeyIsFirst) return
-                const FIRST_ITEM = chosenKeyIsFirst ? 1 : 0
+              {guessedKeys.filter((_, i) => i !== chosenIndex).map((guess, i) => {
                 return (
                   <span key={i}>
-                    { (i > FIRST_ITEM) ? <span className="text-gray-700 px-1" key={`${i}-em`}>…</span> : '' }
+                    { (i > 0) ? <span className="text-gray-700 px-1" key={`${i}-em`}>…</span> : '' }
                     <span className="text-gray-500" key={i}>
                       {keyForDisplay(guess)} ({decimal(100 * guess.score)}%)
                     </span>
