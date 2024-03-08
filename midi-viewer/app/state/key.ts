@@ -5,14 +5,14 @@ type KeyState = {
   /**
    * e.g. "B minor"
    */
-  chosenKey: string | undefined
-  guesses: LikelyKey[] | undefined
+  chosenKey: LikelyKey | undefined
+  guessedKeys: LikelyKey[] | undefined
   isLocked: boolean
 }
 
 const INITIAL_STATE: KeyState = {
   chosenKey: undefined,
-  guesses: undefined,
+  guessedKeys: undefined,
   isLocked: false,
 }
 
@@ -20,18 +20,15 @@ const INITIAL_STATE: KeyState = {
 
 type KeyStateAndMutators = KeyState & {
   reset: () => void
-  setGuesses: (guesses: LikelyKey[] | undefined) => void
+  setGuessedKeys: (guesses: LikelyKey[] | undefined) => void
+  setChosenKey: (bestGuess: LikelyKey | undefined) => void
 }
 
 export const useKey = create<KeyStateAndMutators>()(
   (set) => ({
     ...INITIAL_STATE,
     reset: () => set(() => INITIAL_STATE),
-    setGuesses: (guesses) => set(() => {
-      return {
-        guesses,
-        chosenKey: guesses?.[0] ? `${guesses[0].note} ${guesses[0].mode}` : undefined,
-      }
-    }),
+    setGuessedKeys: (guessedKeys) => set({ guessedKeys }),
+    setChosenKey: (chosenKey) => set({ chosenKey })
   }),
 )

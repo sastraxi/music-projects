@@ -1,6 +1,6 @@
 import { Slider } from "@nextui-org/react";
-import { decimal, detectKey, noteForDisplay, noteFromMidi } from "noteynotes";
-import { useEffect, useMemo } from "react";
+import { decimal, keyEq, keyForDisplay, toKeyName, noteForDisplay, noteFromMidi } from "noteynotes";
+import { useEffect } from "react";
 import { useKey } from "~/state/key";
 import { useNoteHistogram } from "~/state/note-histogram";
 
@@ -11,9 +11,9 @@ const DetectedKey = ({
 }: {
   timeOffset: number
 }) => {
-  const { calculate, computed, maximum, reset: resetHistogram } = useNoteHistogram()
-  const { setGuesses, chosenKey } = useKey()
+  const { calculate, computed, maximum } = useNoteHistogram()
   let factor = maximum === 0 ? 1 : (1 / maximum)
+  const { chosenKey, guessedKeys } = useKey()
 
   useEffect(() => {
     const intervalId = setInterval(() => {
@@ -22,23 +22,15 @@ const DetectedKey = ({
     return () => clearInterval(intervalId)
   }, [])
 
-  const guessedKeys = useMemo(() => {
-    const guesses = maximum === 0 ? [] : detectKey(computed).slice(0, 5)
-    return guesses
-  }, [computed])
-
-  useEffect(() => {
-    setGuesses(guessedKeys)
-  }, [guessedKeys])
-
-  if (guessedKeys.length === 0) return <></>
-
   // TODO: report the key to zustand so places in the UI can use it as displayContext
   // TODO: move key guessing + interval out of react; just subscribe to enable / disable a pure JS thing
   const noteColumns = []
   for (let i = 0; i < 12; ++i) {
     // TODO: highlight notes in chosenKey
-    const noteName = noteForDisplay(noteFromMidi(i), { showOctave: false, keyName: chosenKey }) 
+    const noteName = noteForDisplay(noteFromMidi(i), {
+      showOctave: false,
+      keyName: chosenKey ? toKeyName(chosenKey) : undefined
+    }) 
     noteColumns.push(
       <Slider   
         size="md"
@@ -59,27 +51,33 @@ const DetectedKey = ({
     )
   }
 
+  const hasGuess = guessedKeys && guessedKeys?.length > 0
+  const chosenKeyIsFirst = chosenKey && hasGuess && keyEq(chosenKey, guessedKeys[0])
+
   return (
     <div className="flex flex-row w-full">
       <div className="flex flex-row mr-6">
         {noteColumns}
       </div>
       <div>
-        { guessedKeys.length > 0 && (
+        { chosenKey && (
+          <h1 className="text-2xl" key="chosen-key">
+            {keyForDisplay(chosenKey)}
+            &nbsp;
+            <span className="text-gray-500">({decimal(100 * chosenKey.score)}%)</span>
+          </h1>
+        )}
+        { hasGuess && (
           <>
-            <h1 className="text-2xl" key="first-guess">
-              {noteForDisplay(guessedKeys[0].note)} {guessedKeys[0].mode}
-              &nbsp;
-              <span className="text-gray-500">({decimal(100 * guessedKeys[0].score)}%)</span>
-            </h1>
             <span className="text-sm" key="other-guesses">
               {guessedKeys.map((guess, i) => {
-                if (i === 0) return
+                if (i === 0 && chosenKeyIsFirst) return
+                const FIRST_ITEM = chosenKeyIsFirst ? 1 : 0
                 return (
                   <span key={i}>
-                    { (i > 1) ? <span className="text-gray-700 px-1" key={`${i}-em`}>…</span> : '' }
+                    { (i > FIRST_ITEM) ? <span className="text-gray-700 px-1" key={`${i}-em`}>…</span> : '' }
                     <span className="text-gray-500" key={i}>
-                      {noteForDisplay(guess.note)} {guess.mode} ({decimal(100 * guess.score)}%)
+                      {keyForDisplay(guess)} ({decimal(100 * guess.score)}%)
                     </span>
                   </span>
                 )    

@@ -1,7 +1,7 @@
 import { Button, Card, CardHeader, Switch } from "@nextui-org/react";
 import type { MetaFunction } from "@remix-run/cloudflare";
-import { Note, noteFromMidi,  chordForDisplay, detectChord, FullChord, noteForDisplay } from "noteynotes";
-import { useCallback, useEffect, useState } from "react";
+import { noteFromMidi, chordForDisplay, detectChord, FullChord, noteForDisplay, detectKey, toKeyName } from "noteynotes";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import DetectedKey from "~/components/DetectedKey";
 import { listenForMidi } from "~/midi";
 import { useChords } from "~/state/chords";
@@ -23,10 +23,12 @@ export default function Index() {
   const [pendingChord, setPendingChord] = useState<FullChord | undefined>()
   const [tapTimestamps, setTapTimestamps] = useState<number[]>([])
   const [timeOffset, setTimeOffset] = useState<number | undefined>(0)
+  const [isKeyLocked, setKeyLocked] = useState<boolean>(false)
+
   const { sortedNotes, noteSet, includeNote, excludeNote, toggleNote, reset: resetNotes } = useNoteSet()
   const { chords, push, reset: resetChords, removeChord } = useChords()
-  const { noteOn, noteOff, noteInstant, reset: resetHistogram, maximum: histogramMaximum } = useNoteHistogram()
-  const { chosenKey } = useKey()
+  const { noteOn, noteOff, noteInstant, reset: resetHistogram, maximum: histogramMaximum, computed: computedHistogram } = useNoteHistogram()
+  const { setGuessedKeys, chosenKey, setChosenKey } = useKey()
 
   const pushTap = (ts: number) => setTapTimestamps(prev => [...prev, ts])
 
@@ -87,20 +89,18 @@ export default function Index() {
     setPendingChord(resolvedChord)
   }, [sortedNotes])
 
-  // next:
-  // TODO: "long context" --> guessed key based on scale + tonal centre? note movement / clustering?
-  // TODO: show function of recent chord in key context
-  // TODO: checkmark on UI when chords is locked in
+  // note histogram ==> keys
+  useEffect(() => {
+    const guessedKeys = histogramMaximum === 0 ? [] : detectKey(computedHistogram).slice(0, 5)
+    setGuessedKeys(guessedKeys)
+    if (!isKeyLocked && guessedKeys.length > 0) {
+      setChosenKey(guessedKeys[0])
+    }
+  }, [computedHistogram])
 
-  // later:
-  // TODO: notes played right before the tap should be considered part of the next batch of notes
-  // TODO: double-tapping drops the pending chord without committing it
-  // TODO: both bass note and extensions should be dynamic over the chord lifetime
-  // TODO: need to auto-switch extensions based on a _dissonance threshold_
-  // TODO: record their history (per base chord) and show them on the UI (MIDI)
-
+  const keyName = chosenKey ? toKeyName(chosenKey) : undefined
   const notesString = Array.from(sortedNotes)
-    .map(note => noteForDisplay(note, { showOctave: true, keyName: chosenKey }))
+    .map(note => noteForDisplay(note, { showOctave: true, keyName }))
     .join(', ')
 
   return (
@@ -137,7 +137,7 @@ export default function Index() {
 
       <div className="text-8xl flex justify-center bg-pink-950 p-16 rounded-xl my-4">
         <span style={{ textShadow: "6px 6px 0px rgba(0,0,0,0.4)" }}>
-          {pendingChord ? chordForDisplay(pendingChord, { keyName: chosenKey }) : "--"}
+          {pendingChord ? chordForDisplay(pendingChord, { keyName }) : "--"}
         </span>
       </div>
 
@@ -157,30 +157,29 @@ export default function Index() {
         </h2>
       </div>
 
-      <div className="flex flex-row justify-between items-center mt-8 mb-4">
+      <div className="flex flex-row justify-between items-center mt-8 mb-2">
         <h1 className="text-xl">
-          Detected key
+          Key and chords
         </h1>
         <div className="flex space-x-2">
+          <Switch
+              isSelected={isKeyLocked}
+              onValueChange={setKeyLocked}
+              classNames={{ base: "flex-row-reverse", label: "mr-2" }}
+            >
+            Locked
+          </Switch>
           <Button size="md" onClick={resetHistogram} isDisabled={histogramMaximum === 0}>
-            Reset
+            Reset histogram
+          </Button>
+          <Button size="md" color="danger" className="bg-pink-800" onClick={resetChords} isDisabled={chords.length === 0}>
+            Clear chords
           </Button>
         </div>
       </div>
       { timeOffset !== undefined &&
         <DetectedKey timeOffset={timeOffset} />
       }
-  
-      <div className="flex flex-row justify-between items-center mt-8">
-        <h1 className="text-xl">
-          Chord history
-        </h1>
-        <div className="flex space-x-2">
-          <Button size="md" color="danger" className="bg-pink-800" onClick={resetChords} isDisabled={chords.length === 0}>
-            Clear all
-          </Button>
-        </div>
-      </div>
       {chords.length === 0 && (
           <p className="text-sm mt-4 text-gray-400">
             Chords you save will appear here.
@@ -190,7 +189,7 @@ export default function Index() {
         {chords.map((chord, index) => (
           <Card key={index}>
             <CardHeader className="justify-between">
-              <p className="text-2xl">{chordForDisplay(chord, { keyName: chosenKey })}</p>
+              <p className="text-2xl">{chordForDisplay(chord, { keyName })}</p>
               <Button isIconOnly size="sm" title="Delete" onClick={() => removeChord(index)}>
                 ✕
               </Button>

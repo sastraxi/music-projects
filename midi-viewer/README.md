@@ -46,3 +46,13 @@ npm run deploy
 ```
 
 [bindings]: https://developers.cloudflare.com/pages/functions/bindings/
+
+
+// TODO: "long context" --> guessed key based on scale + tonal centre? note movement / clustering?
+// TODO: show function of recent chord in key context
+// TODO: checkmark on UI when chords is locked in
+// TODO: notes played right before the tap should be considered part of the next batch of notes
+// TODO: double-tapping drops the pending chord without committing it
+// TODO: both bass note and extensions should be dynamic over the chord lifetime
+// TODO: need to auto-switch extensions based on a _dissonance threshold_
+// TODO: record their history (per base chord) and show them on the UI (MIDI)

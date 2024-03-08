@@ -1,5 +1,5 @@
 import { pairwiseMultiply, range, rotate, sum } from "../util"
-import { MAJOR_MODES_BY_DEGREE, MAJOR_SCALES, NUM_DEGREES, Note, OCTAVE_SIZE, noteToMidi } from "./common"
+import { MAJOR_MODES_BY_DEGREE, MAJOR_SCALES, NUM_DEGREES, Note, OCTAVE_SIZE, noteForDisplay, noteToMidi } from "./common"
 import { NoteHistogramBuckets } from "./keys"
 
 export type LikelyKey = {
@@ -7,6 +7,10 @@ export type LikelyKey = {
   mode: string,
   score: number
 }
+
+export const toKeyName = (key: LikelyKey) => `${key.note} ${key.mode}`
+export const keyForDisplay = (key: LikelyKey) => `${noteForDisplay(key.note)} ${key.mode}`
+export const keyEq = (a: LikelyKey, b: LikelyKey) => a.note === b.note && a.mode === b.mode
 
 /**
  * In order to detect which mode is most likely for a given major scale,
