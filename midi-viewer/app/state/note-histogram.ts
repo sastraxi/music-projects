@@ -25,7 +25,7 @@ const MIN_TIME_DELTA_MS = 0.5 * 1000
 
 const TIME_SCALE = 0.0003
 
-const TIME_EXPONENT = 0.5
+const TIME_EXPONENT = 0.3
 
 /**
  * Increase to make longer notes have more weight; decrease to
@@ -50,7 +50,7 @@ const LONG_CONTEXT_MS = 45 * 1000
 /**
  * How should long context values decay towards zero over time?
  */
-const LONG_CONTEXT_DECAY_PER_SECOND = 0.991
+const LONG_CONTEXT_DECAY_PER_SECOND = 0.993
 
 /**
  * Consider buckets to be zeroed out below this value.
