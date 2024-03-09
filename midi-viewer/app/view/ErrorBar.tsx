@@ -1,18 +1,18 @@
 import { Progress } from "@nextui-org/react"
 
 const colourForAmount = (amount: number) => {
-  if (amount < 0.4) return "danger"
-  if (amount < 0.7) return "warning"
-  return "success"
+  if (amount < 0.3) return "success"
+  if (amount < 0.6) return "warning"
+  return "danger"
 }
 
-const StabilityBar = ({ amount }: { amount: number }) => (
+const ErrorBar = ({ amount }: { amount: number }) => (
   <div className="flex flex-row items-center w-48">
     <span className="text-xs">
-      Stability
+      Error
     </span>
     <Progress
-      aria-label="Stability"
+      aria-label="Error"
       value={amount}
       minValue={0}
       maxValue={1}
@@ -23,4 +23,4 @@ const StabilityBar = ({ amount }: { amount: number }) => (
   </div>
 )
 
-export default StabilityBar
+export default ErrorBar
