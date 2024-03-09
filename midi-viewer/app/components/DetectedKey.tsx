@@ -3,9 +3,11 @@ import { decimal, keyEq, keyForDisplay, toKeyName, noteForDisplay, noteFromMidi,
 import { useEffect, useMemo } from "react";
 import { useKey } from "~/state/key";
 import { useNoteHistogram } from "~/state/note-histogram";
-import ErrorBar from "~/view/ErrorBar";
+import StabilityBar from "~/view/StabilityBar";
+import ErrorBar from "~/view/StabilityBar";
 
 const HISTOGRAM_REFRESH_MS = 1000
+const STABILITY_EXP = 2.3
 
 const DetectedKey = ({
   timeOffset
@@ -73,6 +75,11 @@ const DetectedKey = ({
     )
   }
 
+  // FIXME: figure out something more grounded in reality
+  // also... this is not stability, this is 1 - error. stability is about
+  // keeping the same key, this is about keeping the same scale
+  const stability = Math.pow(1 - (error / errorDenominator), STABILITY_EXP)
+
   const hasGuess = guessedKeys && guessedKeys?.length > 0
   const chosenIndex = chosenKey ? guessedKeys?.findIndex(x => keyEq(x, chosenKey)) ?? -1 : -1
 
@@ -96,7 +103,7 @@ const DetectedKey = ({
           </h1>
         )}
         <div className="text-sm mt-1">
-          {!guessedKeys || guessedKeys.length === 0 && <span>&nbsp;</span>}
+          {!hasGuess && <span>&nbsp;</span>}
           {guessedKeys?.filter((_, i) => i !== chosenIndex).map((guess, i) => {
             return (
               <span key={i}>
@@ -110,11 +117,10 @@ const DetectedKey = ({
         </div>
         { chosenKey &&
           <div className="mt-4">
-            <ErrorBar amount={error / errorDenominator} />
+            <StabilityBar amount={stability} />
           </div>
         }
       </div>
-      {/* <div className="grow" /> */}
     </div>
   )
 }
