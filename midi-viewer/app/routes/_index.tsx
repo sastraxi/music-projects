@@ -8,6 +8,7 @@ import { useChords } from "~/state/chords";
 import { useKey } from "~/state/key";
 import { useNoteHistogram } from "~/state/note-histogram";
 import { useNoteSet } from "~/state/note-set";
+import ChordCard from "~/view/ChordCard";
 import OneUpContainer from "~/view/OneUpContainer";
 import Piano from "~/view/Piano";
 
@@ -161,14 +162,19 @@ export default function Index() {
         <h1 className="text-xl">
           Key and chords
         </h1>
+        <Switch
+
+            className="ml-6 pt-1"
+            size="sm"
+            isSelected={isKeyLocked}
+            onValueChange={setKeyLocked}
+          >
+            <span className={isKeyLocked ? "text-sky-600" : ""}>
+              Lock{isKeyLocked ? 'ed' : ''}
+            </span>
+        </Switch>
+        <div className="flex-grow" />
         <div className="flex space-x-2">
-          <Switch
-              isSelected={isKeyLocked}
-              onValueChange={setKeyLocked}
-              classNames={{ base: "flex-row-reverse", label: "mr-2" }}
-            >
-            Locked
-          </Switch>
           <Button size="md" onClick={resetHistogram} isDisabled={histogramMaximum === 0}>
             Reset histogram
           </Button>
@@ -187,19 +193,7 @@ export default function Index() {
         )}
       <div className="grid grid-cols-4 gap-4 mt-4">
         {chords.map((chord, index) => (
-          <Card key={index}>
-            <CardHeader className="justify-between">
-              <p className="text-2xl">
-                {chordForDisplay(chord, { keyName })}
-                {keyName && <span className={isDiatonic(chord, keyName) ? "ml-2" : "bg-red-700 rounded-md ml-2 pr-2"}>
-                  &nbsp;{getRomanNumeral(keyName, toBasicChord(chord))}
-                </span>}
-              </p>
-              <Button isIconOnly size="sm" title="Delete" onClick={() => removeChord(index)}>
-                ✕
-              </Button>
-            </CardHeader>
-          </Card>
+          <ChordCard chord={chord} keyName={keyName} removeChord={() => removeChord(index)} />
         ))}
       </div>
     </OneUpContainer>

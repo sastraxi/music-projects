@@ -222,7 +222,7 @@ const Piano = ({
       if (x + width > maxX) maxX = x + width
 
       const fill = isHighlighted ? (
-        isBlack ? "#b3d1f2" : "white"
+        isBlack ? "#f472b6" : "#fbcfe8"
       ) : (
         isBlack ? "#121212" : "#1f1f1f"
       )

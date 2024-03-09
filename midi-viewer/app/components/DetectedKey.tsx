@@ -65,9 +65,13 @@ const DetectedKey = ({
           <h1 className="text-2xl" key="chosen-key">
             {keyForDisplay(chosenKey)}
             {/* the match % is meaningless in the chosen key; need to grab from the array if it's there */}
-            {chosenIndex !== -1 && guessedKeys &&
-              <span className="text-gray-500">&nbsp;({decimal(100 * guessedKeys[chosenIndex].score)}%)</span>
-            }
+            
+            <span className="text-gray-500">&nbsp;{
+              chosenIndex !== -1 && guessedKeys
+                ? `(${decimal(100 * guessedKeys[chosenIndex].score)}%)`
+                : "(--)"
+              }
+            </span>
           </h1>
         )}
         { hasGuess && (
