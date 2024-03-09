@@ -161,11 +161,10 @@ export default function Index() {
 
       <div className="flex flex-row justify-between items-center mt-8 mb-2">
         <h1 className="text-xl">
-          Key and chords
+          Key / mode
         </h1>
         <Switch
-
-            className="ml-6 pt-1"
+            className="ml-3 pt-1"
             size="sm"
             isSelected={isKeyLocked}
             onValueChange={setKeyLocked}

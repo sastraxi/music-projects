@@ -83,11 +83,11 @@ const DetectedKey = ({
       </div>
       <div>
         { chosenKey && (
-          <h1 className="text-2xl -mb-1" key="chosen-key">
+          <h1 className="text-2xl -mt-2" key="chosen-key">
             {keyForDisplay(chosenKey)}
             {/* the match % is meaningless in the chosen key; need to grab from the array if it's there */}
             {/* TODO: save chosenKey without percentage match */}
-            <span className="text-gray-500">&nbsp;{
+            <span className="text-gray-400 font-thin">&nbsp;{
               chosenIndex !== -1 && guessedKeys
                 ? `(${decimal(100 * guessedKeys[chosenIndex].score)}%)`
                 : "(--)"
@@ -95,24 +95,21 @@ const DetectedKey = ({
             </span>
           </h1>
         )}
-        { hasGuess && (
-          <>
-            <span className="text-sm" key="other-guesses">
-              {guessedKeys.filter((_, i) => i !== chosenIndex).map((guess, i) => {
-                return (
-                  <span key={i}>
-                    { (i > 0) ? <span className="text-gray-700 px-1" key={`${i}-em`}>…</span> : '' }
-                    <span className="text-gray-500" key={i}>
-                      {keyForDisplay(guess)} ({decimal(100 * guess.score)}%)
-                    </span>
-                  </span>
-                )    
-              })}
-            </span>
-          </>
-        )}
+        <div className="text-sm mt-1">
+          {!guessedKeys || guessedKeys.length === 0 && <span>&nbsp;</span>}
+          {guessedKeys?.filter((_, i) => i !== chosenIndex).map((guess, i) => {
+            return (
+              <span key={i}>
+                { (i > 0) ? <span className="text-gray-600 font-medium px-1" key={`${i}-em`}>…</span> : '' }
+                <span className="text-gray-400" key={i}>
+                  {keyForDisplay(guess)} ({decimal(100 * guess.score)}%)
+                </span>
+              </span>
+            )    
+          })}
+        </div>
         { chosenKey &&
-          <div className="mt-1">
+          <div className="mt-4">
             <ErrorBar amount={error / errorDenominator} />
           </div>
         }
