@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { useKey } from "~/state/key";
 import { useNoteHistogram } from "~/state/note-histogram";
 import { remove } from "~/util";
+import ErrorBar from "~/view/ErrorBar";
 
 const HISTOGRAM_REFRESH_MS = 1000
 
@@ -23,15 +24,15 @@ const DetectedKey = ({
     return () => clearInterval(intervalId)
   }, [])
 
-  // TODO: report the key to zustand so places in the UI can use it as displayContext
-  // TODO: move key guessing + interval out of react; just subscribe to enable / disable a pure JS thing
   const noteColumns = []
+
   for (let i = 0; i < 12; ++i) {
-    // TODO: highlight notes in chosenKey
+    // TODO: calculate if note is in chosen key, show it, use to determine error
     const noteName = noteForDisplay(noteFromMidi(i), {
       showOctave: false,
       keyName: chosenKey ? toKeyName(chosenKey) : undefined
     }) 
+    const noteFreqPercentage = factor * computed[i]
     noteColumns.push(
       <Slider   
         size="md"
@@ -41,7 +42,7 @@ const DetectedKey = ({
         minValue={0} 
         orientation="vertical"
         aria-label={noteName}
-        value={factor * computed[i]}
+        value={noteFreqPercentage}
         endContent={<span className="text-xs">{noteName}</span>}
         hideThumb
         classNames={{
@@ -62,7 +63,7 @@ const DetectedKey = ({
       </div>
       <div>
         { chosenKey && (
-          <h1 className="text-2xl" key="chosen-key">
+          <h1 className="text-2xl -mb-1" key="chosen-key">
             {keyForDisplay(chosenKey)}
             {/* the match % is meaningless in the chosen key; need to grab from the array if it's there */}
             
@@ -90,6 +91,11 @@ const DetectedKey = ({
             </span>
           </>
         )}
+        {
+          <div className="mt-1">
+            <ErrorBar amount={0.5} />
+          </div>
+        }
       </div>
       {/* <div className="grow" /> */}
     </div>

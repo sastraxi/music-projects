@@ -1,7 +1,7 @@
-import { Button, Card, CardHeader, Switch } from "@nextui-org/react";
+import { Button, Switch } from "@nextui-org/react";
 import type { MetaFunction } from "@remix-run/cloudflare";
 import { noteFromMidi, chordForDisplay, detectChord, FullChord, noteForDisplay, detectKey, toKeyName, getRomanNumeral, toBasicChord, isDiatonic } from "noteynotes";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import DetectedKey from "~/components/DetectedKey";
 import { listenForMidi } from "~/midi";
 import { useChords } from "~/state/chords";
@@ -91,6 +91,7 @@ export default function Index() {
   }, [sortedNotes])
 
   // note histogram ==> keys
+  // TODO: move key guessing + interval out of react; just subscribe to enable / disable a pure JS thing
   useEffect(() => {
     const guessedKeys = histogramMaximum === 0 ? [] : detectKey(computedHistogram).slice(0, 5)
     setGuessedKeys(guessedKeys)
