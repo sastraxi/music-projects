@@ -194,7 +194,7 @@ export default function Index() {
         )}
       <div className="grid grid-cols-4 gap-4 mt-4">
         {chords.map((chord, index) => (
-          <ChordCard chord={chord} keyName={keyName} removeChord={() => removeChord(index)} />
+          <ChordCard key={`chord-${index}`} chord={chord} keyName={keyName} removeChord={() => removeChord(index)} />
         ))}
       </div>
     </OneUpContainer>

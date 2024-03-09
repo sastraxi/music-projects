@@ -1,9 +1,8 @@
 import { Slider } from "@nextui-org/react";
-import { decimal, keyEq, keyForDisplay, toKeyName, noteForDisplay, noteFromMidi } from "noteynotes";
-import { useEffect } from "react";
+import { decimal, keyEq, keyForDisplay, toKeyName, noteForDisplay, noteFromMidi, inKeyPredicate, normalizedNoteName, stripOctave } from "noteynotes";
+import { useEffect, useMemo } from "react";
 import { useKey } from "~/state/key";
 import { useNoteHistogram } from "~/state/note-histogram";
-import { remove } from "~/util";
 import ErrorBar from "~/view/ErrorBar";
 
 const HISTOGRAM_REFRESH_MS = 1000
@@ -26,28 +25,49 @@ const DetectedKey = ({
 
   const noteColumns = []
 
+  /**
+   * Is a given note in our current key?
+   */
+  const inKey = useMemo(() => {
+    if (!chosenKey) return () => true  // no key --> no errors
+    return inKeyPredicate(toKeyName(chosenKey))
+  }, [chosenKey])
+
+  let error = 0
+  let errorDenominator = 0
   for (let i = 0; i < 12; ++i) {
-    // TODO: calculate if note is in chosen key, show it, use to determine error
     const noteName = noteForDisplay(noteFromMidi(i), {
       showOctave: false,
       keyName: chosenKey ? toKeyName(chosenKey) : undefined
-    }) 
-    const noteFreqPercentage = factor * computed[i]
+    })
+
+    // FIXME: next line is hacky
+    const isKeyRoot = chosenKey ? normalizedNoteName(chosenKey.note) === normalizedNoteName(stripOctave(noteFromMidi(i))) : false
+    const noteInKey = inKey(noteFromMidi(i))
+    errorDenominator += computed[i]
+    if (!noteInKey) {
+      error += computed[i]
+    }
+
     noteColumns.push(
       <Slider   
         size="md"
         key={noteName}
-        step={0.001} 
+        step={0.001}
         maxValue={1} 
         minValue={0} 
         orientation="vertical"
         aria-label={noteName}
-        value={noteFreqPercentage}
-        endContent={<span className="text-xs">{noteName}</span>}
+        value={factor * computed[i]}
+        endContent={
+          <span className={`text-xs ${noteInKey ? '' : 'opacity-50'} ${isKeyRoot ? 'underline' : ''}`}>
+            {noteName}
+          </span>
+        }
         hideThumb
         classNames={{
           track: "mx-0 h-12",
-          trackWrapper: "mx-[2px]"
+          trackWrapper: "mx-[2px]",
         }}
       />
     )
@@ -66,7 +86,7 @@ const DetectedKey = ({
           <h1 className="text-2xl -mb-1" key="chosen-key">
             {keyForDisplay(chosenKey)}
             {/* the match % is meaningless in the chosen key; need to grab from the array if it's there */}
-            
+            {/* TODO: save chosenKey without percentage match */}
             <span className="text-gray-500">&nbsp;{
               chosenIndex !== -1 && guessedKeys
                 ? `(${decimal(100 * guessedKeys[chosenIndex].score)}%)`
@@ -91,9 +111,9 @@ const DetectedKey = ({
             </span>
           </>
         )}
-        {
+        { chosenKey &&
           <div className="mt-1">
-            <ErrorBar amount={0.5} />
+            <ErrorBar amount={error / errorDenominator} />
           </div>
         }
       </div>
