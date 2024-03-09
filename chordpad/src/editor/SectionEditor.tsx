@@ -114,7 +114,7 @@ const SectionEditor = ({
     }
   }, [])
 
-  const [scratchTitle, setScratchTitle] = useState<string | undefined>(undefined)
+  const [scratchTitle, setScratchTitle] = useState<string>()
   const inputProps: UseComboboxGetInputPropsOptions = {
     onKeyDown,
   }

@@ -21,9 +21,9 @@ export const meta: MetaFunction = () => {
 
 export default function Index() {
   const [isLatching, setLatching] = useState<boolean>(false)
-  const [pendingChord, setPendingChord] = useState<FullChord | undefined>()
+  const [pendingChord, setPendingChord] = useState<FullChord>()
   const [tapTimestamps, setTapTimestamps] = useState<number[]>([])
-  const [timeOffset, setTimeOffset] = useState<number | undefined>(0)
+  const [timeOffset, setTimeOffset] = useState<number>(0)
   const [isKeyLocked, setKeyLocked] = useState<boolean>(false)
 
   const { sortedNotes, noteSet, includeNote, excludeNote, toggleNote, reset: resetNotes } = useNoteSet()

@@ -23,7 +23,7 @@ const ChordInput = ({
   additionalInputProps = {},
 }: PropTypes) => {
   const [chords, setChords] = useState<string[]>([])
-  const [scratchValue, setScratchValue] = useState<string | undefined>(undefined)
+  const [scratchValue, setScratchValue] = useState<string>()
 
   const commit = (value: string | null | undefined) => {
     const potentialValue = value?.trim()

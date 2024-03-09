@@ -46,7 +46,7 @@ const TimelineItem = ({
 }: PropTypes) => {
   const { baseWidth, measuresPerLine, lineHeight, snapDuration } = useGlobalScale()
 
-  const [dragAnchor, setDragAnchor] = useState<Coordinate | undefined>(undefined)
+  const [dragAnchor, setDragAnchor] = useState<Coordinate>()
 
   const end = view.end ?? item.duration
   const start = view.start ?? 0

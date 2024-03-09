@@ -7,8 +7,8 @@ const SongMetaEditor = () => {
   const { title, setTitle, author, setAuthor } = useSongMeta()
   const context = useDefaultSongContext()
   const mutators = useMutateDefaultSongContext()
-  const [scratchTitle, setScratchTitle] = useState<string | undefined>(undefined)
-  const [scratchAuthor, setScratchAuthor] = useState<string | undefined>(undefined)
+  const [scratchTitle, setScratchTitle] = useState<string>()
+  const [scratchAuthor, setScratchAuthor] = useState<string>()
 
   const onSubmit = (newTitle: string) => {
     if (newTitle) setTitle(newTitle)
