@@ -45,7 +45,7 @@ const ChordCard = ({
         <span className={isDiatonic(chord, keyName) ? IN_KEY_CLASSNAMES : OUT_OF_KEY_CLASSNAMES}>
           &nbsp;{getRomanNumeral(keyName, toBasicChord(chord))}
         </span>)}
-      <Button isIconOnly size="sm" title="Delete" onClick={removeChord} className="bg-slate-950">
+      <Button isIconOnly size="sm" title="Delete" onClick={removeChord} className="bg-slate-950 ml-12">
         ✕
       </Button>
     </CardHeader>
