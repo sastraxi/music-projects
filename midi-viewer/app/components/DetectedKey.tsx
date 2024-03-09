@@ -4,7 +4,6 @@ import { useEffect, useMemo } from "react";
 import { useKey } from "~/state/key";
 import { useNoteHistogram } from "~/state/note-histogram";
 import StabilityBar from "~/view/StabilityBar";
-import ErrorBar from "~/view/StabilityBar";
 
 const HISTOGRAM_REFRESH_MS = 1000
 const STABILITY_EXP = 2.3
