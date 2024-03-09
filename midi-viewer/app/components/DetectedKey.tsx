@@ -60,7 +60,7 @@ const DetectedKey = ({
         aria-label={noteName}
         value={factor * computed[i]}
         endContent={
-          <span className={`text-xs ${noteInKey ? '' : 'opacity-50'} ${isKeyRoot ? 'underline' : ''}`}>
+          <span className={`text-xs font-medium ${noteInKey ? '' : 'opacity-50'} ${isKeyRoot ? 'underline' : ''}`}>
             {noteName}
           </span>
         }
