@@ -1,6 +1,6 @@
 import { cumulative, eq, relativeToFirst, sum } from "../util"
-import { CHORD_LIBRARY, ChordType, FullChord, lookupChord } from "./chords"
-import { Note, OCTAVE_SIZE, stripOctave } from "./common"
+import { CHORD_LIBRARY, Chord } from "./chords"
+import { Note, NoteDisplayContext, OCTAVE_SIZE, stripOctave } from "./common"
 import { Note as TonalNote } from 'tonal'
 import { TRIAD_LIBRARY, Triad } from "./triads"
 
@@ -12,14 +12,14 @@ type TriadDetectionResult = {
   name: string
   inversion: 0 | 1 | 2
   /**
-   * What intervals (sorted from the lowest not) does the triad not account for?
+   * What intervals (sorted from the lowest note) does the triad not account for?
    * Does not include octaves based on the base triad either.
    */
   extraIntervals: number[]
 }
 
 type ChordAndExtensions = {
-  type: ChordType
+  chord: Chord
   /**
    * Intervals in the note set that do not appear in this chord type.
    */
@@ -52,7 +52,7 @@ const findChord = ({
       // !(entry.extensions ?? []).some(x => !extraIntervals.includes(x))  // ignore chords that require extensions we don't have
     ) {  
       const candidate: ChordAndExtensions = {
-        type: entry,  // use first name of chord
+        chord: entry,  // use first name of chord
         unusedIntervals: extraIntervals.filter(x => !(entry.extensions ?? []).includes(x)),
         missingIntervals: (entry.extensions ?? []).filter(x => !extraIntervals.includes(x)),
       }
@@ -126,7 +126,7 @@ const detectTriad = (intervals: number[]): TriadDetectionResult | undefined => {
  * Figure out what chord a smattering of notes best represents.
  * @returns undefined if the notes don't form a coherent chord, otherwise our best guess
  */
-export const detectChord = (notesWithOctaves: Note[]): FullChord | undefined => {
+export const detectChord = (notesWithOctaves: Note[]): Chord | undefined => {
   const midiNotes = [...new Set(notesWithOctaves)].map(TonalNote.midi)
   if (midiNotes.find((note) => note === null || note === undefined)) {
     throw new Error("All inputs to detectChord must have octaves.")
@@ -187,10 +187,10 @@ export const detectChord = (notesWithOctaves: Note[]): FullChord | undefined => 
   if (!chord) return undefined
 
   if (bassNote === rootNote) bassNote = undefined
-  return {
+  return new Chord({
     rootNote,
     bassNote,
     type: chord.type,
     extraIntervals: chord.unusedIntervals,
-  }
+  })
 }

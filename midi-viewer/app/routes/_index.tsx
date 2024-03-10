@@ -1,6 +1,6 @@
 import { Button, Switch } from "@nextui-org/react";
 import type { MetaFunction } from "@remix-run/cloudflare";
-import { noteFromMidi, chordForDisplay, detectChord, FullChord, noteForDisplay, detectKey, toKeyName, getRomanNumeral, toBasicChord, isDiatonic } from "noteynotes";
+import { noteFromMidi, chordForDisplay, detectChord, Chord, noteForDisplay, detectKey, toKeyName, getRomanNumeral, toBasicChord, isDiatonic } from "noteynotes";
 import { useCallback, useEffect, useState } from "react";
 import DetectedKey from "~/components/DetectedKey";
 import { listenForMidi } from "~/midi";
@@ -21,7 +21,7 @@ export const meta: MetaFunction = () => {
 
 export default function Index() {
   const [isLatching, setLatching] = useState<boolean>(false)
-  const [pendingChord, setPendingChord] = useState<FullChord>()
+  const [pendingChord, setPendingChord] = useState<Chord>()
   const [tapTimestamps, setTapTimestamps] = useState<number[]>([])
   const [timeOffset, setTimeOffset] = useState<number>(0)
   const [isKeyLocked, setKeyLocked] = useState<boolean>(false)

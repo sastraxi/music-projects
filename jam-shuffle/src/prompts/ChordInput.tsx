@@ -7,7 +7,7 @@ import PlayButton from '../audio/PlayButton'
 import './ChordInput.css'
 
 import { firstNDigits } from '../util'
-import { ExplodedChord, chordForDisplay, frettingToVexChord, getFrettings, lookupChord } from 'noteynotes'
+import { Chord, chordForDisplay, frettingToVexChord, getFrettings, lookupChord } from 'noteynotes'
 import { getRomanNumeral } from 'noteynotes'
 import { untransformAccidentals } from 'noteynotes'
 
@@ -31,7 +31,7 @@ const sourceSetExpandedTransform = (keyName: string) => (sourceSet: SourceSetCho
 ///////////////////////////
 
 export type ChordChoice = {
-  chord: ExplodedChord,
+  chord: Chord,
   locked: boolean,
   variant: number,
   sourceSet?: SourceSetChoices,
@@ -40,7 +40,7 @@ export type ChordChoice = {
 type Props = {
   keyName: string
   choice: ChordChoice
-  selectableChords: ExplodedChord[]
+  selectableChords: Chord[]
   modifyChord: (changes: Partial<ChordChoice>) => void
   sourceSetOptions?: Array<SourceSetChoices>
   player?: MIDISoundPlayer

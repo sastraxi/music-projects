@@ -21,7 +21,7 @@ import {
   getGuitarNotes,
   chordForDisplay,
   chordEquals,
-  ExplodedChord,
+  Chord,
 } from 'noteynotes'
 
 import {
@@ -127,7 +127,7 @@ const generateChordChoices = memoize((
     /**
      * Only return chords that have the same base triad?
      */
-    sameBaseTriadAs?: ExplodedChord
+    sameBaseTriadAs?: Chord
   }
 ) => {
   // TODO: could parameterize differently once we have a richer way of expressing

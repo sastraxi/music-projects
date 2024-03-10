@@ -1,14 +1,15 @@
 import { Interval, Progression, RomanNumeral, transpose } from "tonal"
-import { ALL_GUITAR_CHORDS, Chord, ChordSuffix, ExplodedChord, explodeChord } from "../instrument/guitar"
-import { ENHARMONIC_DISPLAY_FOR_KEYNAME, Note, displayAccidentals } from "./common"
-import { memoize } from "../util"
+import { ALL_GUITAR_CHORDS, explodeChord } from "../instrument/guitar"
+import { ChordName, ChordSuffix, ENHARMONIC_DISPLAY_FOR_KEYNAME, Note, RootAndSuffix, displayAccidentals } from "./common"
+import { cumulative, memoize } from "../util"
 
 /**
  * Number of semitones in the two nonoverlapping sub-intervals that make up a triad.
  */
-export type Triad = Readonly<[number, number]>
+export type Triad = Readonly<number[]>
 
-export const POWER_TRIAD: Triad = [0, 7] as const  // yes, it's not a triad. sue me
+// FIXME: is [0, 7], [7, 5], or [7] the best way to do this?
+export const POWER_TRIAD: Triad = [7, 5] as const  // yes, it's not a triad. sue me
 export const SUS2_TRIAD: Triad = [2, 5] as const
 export const SUS4_TRIAD: Triad = [5, 2] as const
 export const MINOR_TRIAD: Triad = [3, 4] as const
@@ -29,17 +30,18 @@ const inv = (triad: Triad, inversion: 1 | 2): Triad => {
   }
 }
 
-export const TRIAD_LIBRARY: Record<string, Triad[]> = {}
-{
-  TRIAD_LIBRARY['5'] = [POWER_TRIAD, inv(POWER_TRIAD, 1)]
-  TRIAD_LIBRARY['sus2'] = [SUS2_TRIAD, inv(SUS2_TRIAD, 1), inv(SUS2_TRIAD, 2)]
-  TRIAD_LIBRARY['sus4'] = [SUS4_TRIAD, inv(SUS4_TRIAD, 1), inv(SUS4_TRIAD, 2)]
-  TRIAD_LIBRARY['min'] = [MINOR_TRIAD, inv(MINOR_TRIAD, 1), inv(MINOR_TRIAD, 2)]
-  TRIAD_LIBRARY['maj'] = [MAJOR_TRIAD, inv(MAJOR_TRIAD, 1), inv(MAJOR_TRIAD, 2)]
-  TRIAD_LIBRARY['b5'] = [MAJOR_DIM_TRIAD, inv(MAJOR_DIM_TRIAD, 1), inv(MAJOR_DIM_TRIAD, 2)]
-  TRIAD_LIBRARY['dim'] = [DIMINISHED_TRIAD, inv(DIMINISHED_TRIAD, 1), inv(DIMINISHED_TRIAD, 2)]
-  TRIAD_LIBRARY['aug'] = [AUGMENTED_TRIAD]
-}
+export const TRIAD_LIBRARY = {
+  '5': [POWER_TRIAD, [5, 7] as const],
+  'sus2': [SUS2_TRIAD, inv(SUS2_TRIAD, 1), inv(SUS2_TRIAD, 2)],
+  'sus4': [SUS4_TRIAD, inv(SUS4_TRIAD, 1), inv(SUS4_TRIAD, 2)],
+  'min': [MINOR_TRIAD, inv(MINOR_TRIAD, 1), inv(MINOR_TRIAD, 2)],
+  'maj': [MAJOR_TRIAD, inv(MAJOR_TRIAD, 1), inv(MAJOR_TRIAD, 2)],
+  'b5': [MAJOR_DIM_TRIAD, inv(MAJOR_DIM_TRIAD, 1), inv(MAJOR_DIM_TRIAD, 2)],
+  'dim': [DIMINISHED_TRIAD, inv(DIMINISHED_TRIAD, 1), inv(DIMINISHED_TRIAD, 2)],
+  'aug': [AUGMENTED_TRIAD],
+} as const
+
+export type TriadName = keyof typeof TRIAD_LIBRARY
 
 /**
  * Return the three component notes of a given triad starting
@@ -47,8 +49,7 @@ export const TRIAD_LIBRARY: Record<string, Triad[]> = {}
  */
 export const buildTriad = (rootNote: Note, triad: Triad): Note[] => ([
   rootNote,
-  transpose(rootNote, Interval.fromSemitones(triad[0])),
-  transpose(rootNote, Interval.fromSemitones(triad[0] + triad[1])),
+  ...cumulative(triad).map(semitones => transpose(rootNote, Interval.fromSemitones(semitones))),
 ])
 
 const ALL_CHORD_SUFFIXES: Set<ChordSuffix> = new Set()
@@ -92,7 +93,7 @@ const SUFFIX_TO_TRIAD: Record<ChordSuffix, Triad> = {}
  * @param chord 
  * @returns undefined if we don't have 
  */
-export const getTriadNotes = (chord: ExplodedChord): Note[] | undefined => {
+export const getTriadNotes = (chord: RootAndSuffix): Note[] | undefined => {
   const triad = SUFFIX_TO_TRIAD[chord.suffix]
   if (!triad) return undefined
   return buildTriad(chord.root, triad)
@@ -115,10 +116,10 @@ const NUMERAL_MAP: Record<string, string> = {
   "vii": "ⅶ"
 }
 
-export const getRomanNumeral = memoize((keyName: string, chord: ExplodedChord | Chord): string => {
-  const explodedChord = (typeof chord === 'string' ? explodeChord(chord) : chord)
-  const { suffix } = explodedChord
-  const root = ENHARMONIC_DISPLAY_FOR_KEYNAME[keyName][explodedChord.root]
+export const getRomanNumeral = memoize((keyName: string, chord: ChordName | RootAndSuffix): string => {
+  const Chord = (typeof chord === 'string' ? explodeChord(chord) : chord)
+  const { suffix } = Chord
+  const root = ENHARMONIC_DISPLAY_FOR_KEYNAME[keyName][Chord.root]
 
   const keyTonic = keyName.split(' ')[0]  // XXX: not great Bob
 

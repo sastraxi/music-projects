@@ -1,5 +1,5 @@
 import { Button, Card, CardHeader } from "@nextui-org/react";
-import { FullChord, chordForDisplay, getRomanNumeral, isDiatonic, toBasicChord } from "noteynotes";
+import { Chord, chordForDisplay, getRomanNumeral, isDiatonic, toBasicChord } from "noteynotes";
 
 const COMMON_CLASSNAMES = `
   ml-2
@@ -31,7 +31,7 @@ const ChordCard = ({
   keyName,
   removeChord,
 } : {
-  chord: FullChord,
+  chord: Chord,
   keyName?: string,
   removeChord?: () => void,
 }) =>

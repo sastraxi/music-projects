@@ -1,10 +1,10 @@
-import { FullChord } from 'noteynotes'
+import { Chord } from 'noteynotes'
 import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
 import { remove } from '~/util'
 
 type ChordState = {
-  chords: FullChord[],
+  chords: Chord[],
 }
 
 const INITIAL_STATE: ChordState = {
@@ -15,7 +15,7 @@ const INITIAL_STATE: ChordState = {
 
 type ChordStateAndMutators = ChordState & {
   reset: () => void
-  push: (chord: FullChord) => void
+  push: (chord: Chord) => void
   pop: () => void
   removeChord: (index: number) => void
 }
