@@ -50,7 +50,7 @@ const LONG_CONTEXT_MS = 45 * 1000
 /**
  * How should long context values decay towards zero over time?
  */
-const LONG_CONTEXT_DECAY_PER_SECOND = 0.993
+const LONG_CONTEXT_DECAY_PER_SECOND = 0.99
 
 /**
  * Consider buckets to be zeroed out below this value.
