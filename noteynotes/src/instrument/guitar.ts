@@ -62,6 +62,10 @@ export const chordEquals = (a: Chord, b: Chord) =>
   normalizedNoteName(a.root) === normalizedNoteName(b.root) &&
   a.names[0] === b.names[0]  // FIXME: not a great way to do it
 
+export const rootAndSuffixEquals = (a: RootAndSuffix, b: RootAndSuffix) =>
+  normalizedNoteName(a.root) === normalizedNoteName(b.root) &&
+  a.suffix === b.suffix
+
 /**
  * Looks up all guitar chords for a given chord name in chords-db.
  * @param chordName the chord name, e.g. C/D#, Emmaj7b5, F major

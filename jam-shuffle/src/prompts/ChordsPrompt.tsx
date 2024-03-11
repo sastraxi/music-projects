@@ -1,8 +1,8 @@
 import React, { useEffect, useMemo, useRef } from 'react'
-import BasePrompt from '../core/BasePrompt'
-import IconButton from '../components/IconButton'
 import Choice from '../components/Choice'
 import ChoiceContainer from '../components/ChoiceContainer'
+import IconButton from '../components/IconButton'
+import BasePrompt from '../core/BasePrompt'
 import ChordInput, { ChordChoice, SOURCE_SET_CHOICES, SourceSetChoices } from './ChordInput'
 import './ChordsPrompt.css'
 
@@ -10,29 +10,24 @@ import { usePromptChoices, useSetPromptChoice } from '../state/app'
 import { memoize, randomChoice, withReplacement } from '../util'
 
 import {
-  chordsMatchingCondition,
-  ChordAndAccidentals,
-  keysIncludingChord,
-  lookupChord,
-} from 'noteynotes'
-
-import {
   ALL_GUITAR_CHORDS,
-  getGuitarNotes,
-  chordForDisplay,
-  chordEquals,
+  Balanced,
   Chord,
-} from 'noteynotes'
-
-import {
+  FLAVOUR_CHOICES, Flavour,
   KEY_NAMES_BASED_ON_MAJOR,
+  chordEquals,
+  chordsMatchingCondition,
+  explodeChord,
+  getGuitarNotes,
+  getMakeFlavourChoice,
+  getRomanNumeral,
   keynameToNotes,
-  untransformAccidentals,
+  keysIncludingChord,
+  rootAndSuffixEquals,
+  untransformAccidentals
 } from 'noteynotes'
 
-import { Balanced, FLAVOUR_CHOICES, Flavour, getMakeFlavourChoice } from 'noteynotes'
 import MIDISounds, { MIDISoundPlayer } from 'midi-sounds-react'
-import { getRomanNumeral } from 'noteynotes'
 
 
 ///////////////////////////
@@ -43,11 +38,8 @@ const GUITAR_CHORDS_IN_MAJOR_KEYS =
   ALL_GUITAR_CHORDS
     .filter(x => !SUFFIXES_WE_CANT_MAKE_KEYS_FROM.includes(x.suffix))
 
-const ALL_GUITAR_CHORDS_WITH_BLANK_ACCIDENTALS: Array<ChordAndAccidentals> =
-  GUITAR_CHORDS_IN_MAJOR_KEYS.map(chord => ({
-    chord,
-    accidentalScaleDegreesWithOctaves: [],
-  }))
+const ALL_GUITAR_CHORDS_WITH_BLANK_ACCIDENTALS: Array<Chord> =
+  GUITAR_CHORDS_IN_MAJOR_KEYS.map(Chord.lookup)
 
 ///////////////////////////
 
@@ -64,7 +56,7 @@ const keyLockingExpandedTransform = (keyLocking: KeyLockingChoices) => {
 const keyLockingCaption = (keyName: string, keyLocked: boolean, firstChord: ChordChoice) => {
   if (!keyLocked) {
     if (firstChord.locked) {
-      return `keys containing ${chordForDisplay(lookupChord(firstChord.chord), { keyName })}`
+      return `keys containing ${Chord.lookup(firstChord.chord).forDisplay({ keyName })}`
     }
     return 'all keys'
   }
@@ -109,7 +101,7 @@ const NUM_CHORDS = 3
 const generateKeyChoices = memoize((
   chord?: ChordChoice,
 ) => {
-  if (chord) {
+  if (chord) {  
     const guitarNotes = getGuitarNotes(chord.chord, 0)
     const candidateKeys = keysIncludingChord(chord.chord, guitarNotes)
     return candidateKeys
@@ -145,9 +137,9 @@ const generateChordChoices = memoize((
   if (sameBaseTriadAs) {
     // XXX: need a key name as we compare in context of a key, but it doesn't matter what we choose
     const workingKeyName = keyName ?? 'C major'
-    const romanNumeral = getRomanNumeral(workingKeyName, sameBaseTriadAs)
+    const romanNumeral = getRomanNumeral(workingKeyName, sameBaseTriadAs.getRootAndSuffix())
     const sameNumeralChords = candidateChords.filter(c =>
-        romanNumeral === getRomanNumeral(workingKeyName, c.chord))
+        romanNumeral === getRomanNumeral(workingKeyName, c.getRootAndSuffix()))
 
     if (sameNumeralChords.length === 0) {
       // FIXME: is this because the numerals are expressed differently? Only affects aug chords right now.
@@ -219,13 +211,13 @@ const ChordsPrompt: React.FunctionComponent = () => {
         previous.flavour,
         {
           keyName: ignoreKey ? undefined : keyName,
-          sameBaseTriadAs,
+          sameBaseTriadAs: sameBaseTriadAs ? Chord.lookup(sameBaseTriadAs) : undefined,
         },
       )
 
       if (!shuffle && previousChord !== undefined) {
         // we can keep the previous chord in this position if it's compatible with the new key
-        if (candidateChords.some(({ chord }) => chordEquals(chord, previousChord.chord))) {
+        if (candidateChords.some((chord) => rootAndSuffixEquals(chord.getRootAndSuffix(), previousChord.chord))) {
           chords.push(previousChord)
           continue
         }
@@ -234,7 +226,7 @@ const ChordsPrompt: React.FunctionComponent = () => {
       // generate a new chord
       const defaultSourceSet = i === 0 && !previous.keyLocked ? '✨' : '🔑'  // see "fix up choices" below.
       chords.push({
-        chord: chooseChord(),
+        chord: chooseChord().getRootAndSuffix(),
         locked: false,
         variant: previousChord?.variant ?? 0,
         sourceSet: previousChord?.sourceSet ?? defaultSourceSet,
@@ -293,7 +285,7 @@ const ChordsPrompt: React.FunctionComponent = () => {
 
     // avoid triggering re-generation if the chord is identical
     if (current.chords[chordIndex]) {
-      if (changes.chord && chordEquals(current.chords[chordIndex].chord, changes.chord)) {
+      if (changes.chord && rootAndSuffixEquals(current.chords[chordIndex].chord, changes.chord)) {
         delete changes['chord']
       }
     }
@@ -406,7 +398,7 @@ const ChordsPrompt: React.FunctionComponent = () => {
     [chords, keyLocked]
   )
   const inKeyChords = useMemo(
-    () => flavour ? generateChordChoices(flavour, { keyName }).candidateChords.map(c => c.chord) : [],
+    () => flavour ? generateChordChoices(flavour, { keyName }).candidateChords.map(c => c.getRootAndSuffix()) : [],
     [flavour, keyName]
   )
 

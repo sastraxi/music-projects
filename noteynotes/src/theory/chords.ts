@@ -210,10 +210,20 @@ export class Chord {
   }
 
   /**
-   * Throws away extra intervals + bass note.
+   * Throws away extra intervals, accidentals, and bass note.
    */
   getBasicName(): ChordName {
     return `${this.root} ${this.names[0]}`
+  }
+
+  /**
+   * Throws away extra intervals, accidentals, and bass note.
+   */
+  getRootAndSuffix(): RootAndSuffix {
+    return {
+      root: this.root,
+      suffix: this.names[0]
+    }
   }
 
   /**
