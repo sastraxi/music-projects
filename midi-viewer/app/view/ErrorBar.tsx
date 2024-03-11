@@ -1,4 +1,4 @@
-import { Progress } from "@nextui-org/react"
+import { Progress } from "@nextui-org/progress"
 
 const colourForAmount = (amount: number) => {
   if (amount < 0.3) return "success"

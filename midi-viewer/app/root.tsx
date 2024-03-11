@@ -7,7 +7,7 @@ import {
 } from "@remix-run/react"
 import stylesheet from '~/tailwind.css?url'
 import { LinksFunction } from "@remix-run/cloudflare"
-import { NextUIProvider } from "@nextui-org/react"
+import { NextUIProvider } from "@nextui-org/system"
 
 export const links: LinksFunction = () => [
   { rel: "stylesheet", href: stylesheet },

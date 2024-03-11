@@ -1,4 +1,4 @@
-import { Slider } from "@nextui-org/react";
+import { Slider } from "@nextui-org/slider";
 import { decimal, keyEq, keyForDisplay, toKeyName, noteForDisplay, noteFromMidi, inKeyPredicate, normalizedNoteName, stripOctave } from "noteynotes";
 import { useEffect, useMemo } from "react";
 import { useKey } from "~/state/key";

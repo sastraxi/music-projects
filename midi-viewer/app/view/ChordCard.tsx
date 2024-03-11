@@ -1,4 +1,5 @@
-import { Button, Card, CardHeader } from "@nextui-org/react";
+import { Button } from "@nextui-org/button";
+import { Card, CardHeader } from "@nextui-org/card";
 import { Chord, getRomanNumeral, isDiatonic } from "noteynotes";
 
 const COMMON_CLASSNAMES = `

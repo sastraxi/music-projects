@@ -1,4 +1,5 @@
-import { Button, Switch } from "@nextui-org/react";
+import { Button } from "@nextui-org/button";
+import { Switch } from "@nextui-org/switch";
 import type { MetaFunction } from "@remix-run/cloudflare";
 import { Chord, detectChords, detectKey, noteForDisplay, noteFromMidi, toKeyName } from "noteynotes";
 import { useCallback, useEffect, useState } from "react";
