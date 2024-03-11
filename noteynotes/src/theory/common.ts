@@ -200,6 +200,14 @@ export const explodeNote = (note: Note): ExplodedNote => {
 
 export const combineNote = ({ name, octave }: ExplodedNote): Note => `${name}${octave ?? ''}`
 
+export const withOctave = (note: Note | ExplodedNote, octave: number): Note => {
+  const explodedNote = (typeof note === 'string' ? explodeNote(note) : note)
+  return combineNote({
+    ...explodedNote,
+    octave,
+  })
+}
+
 export const stripOctave = (note: Note | ExplodedNote) => {
   const explodedNote = (typeof note === 'string' ? explodeNote(note) : note)
   return explodedNote.name
@@ -247,7 +255,7 @@ export const noteToMidi = (note: Note): number => {
  * identity of this note (without considering octave).
  */
 export const noteIdentity = (note: Note): number =>
-  noteToMidi(note) % OCTAVE_SIZE
+  noteToMidi(withOctave(note, 1)) % OCTAVE_SIZE  // FIXME: hacky!
 
 export const midiIdentity = (midiNote: number): number =>
   midiNote % OCTAVE_SIZE

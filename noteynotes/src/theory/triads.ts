@@ -9,7 +9,7 @@ import { cumulative, memoize } from "../util"
 export type Triad = Readonly<number[]>
 
 // FIXME: is [0, 7], [7, 5], or [7] the best way to do this?
-export const POWER_TRIAD: Triad = [7, 5] as const  // yes, it's not a triad. sue me
+export const POWER_TRIAD: Triad = [7] as const  // yes, it's not a triad. sue me
 export const SUS2_TRIAD: Triad = [2, 5] as const
 export const SUS4_TRIAD: Triad = [5, 2] as const
 export const MINOR_TRIAD: Triad = [3, 4] as const
@@ -31,7 +31,7 @@ const inv = (triad: Triad, inversion: 1 | 2): Triad => {
 }
 
 export const TRIAD_LIBRARY = {
-  '5': [POWER_TRIAD, [5, 7] as const],
+  '5': [POWER_TRIAD, [5] as const],
   'sus2': [SUS2_TRIAD, inv(SUS2_TRIAD, 1), inv(SUS2_TRIAD, 2)],
   'sus4': [SUS4_TRIAD, inv(SUS4_TRIAD, 1), inv(SUS4_TRIAD, 2)],
   'min': [MINOR_TRIAD, inv(MINOR_TRIAD, 1), inv(MINOR_TRIAD, 2)],

@@ -123,4 +123,8 @@ export const decimal = (n: number, places: number = 2) => {
 }
 
 export const eq = <T>(a: ReadonlyArray<T>, b: ReadonlyArray<T>): boolean =>
+  a.length === b.length &&
   a.every((val, idx) => val === b[idx])
+
+export const mod = (n: number) =>
+  (x: number) => ((x % n) + n) % n

@@ -1,5 +1,5 @@
 import { Button, Card, CardHeader } from "@nextui-org/react";
-import { Chord, chordForDisplay, getRomanNumeral, isDiatonic, toBasicChord } from "noteynotes";
+import { Chord, getRomanNumeral, isDiatonic } from "noteynotes";
 
 const COMMON_CLASSNAMES = `
   ml-2
@@ -38,12 +38,12 @@ const ChordCard = ({
   <Card className="bg-slate-900 relative">
     <CardHeader className="justify-between">
       <p className="text-2xl text-shadow">
-        {chordForDisplay(chord, { keyName })}
+        {chord.forDisplay({ keyName })}
       </p>
       <div className="flex-grow" />
       {keyName && (
         <span className={isDiatonic(chord, keyName) ? IN_KEY_CLASSNAMES : OUT_OF_KEY_CLASSNAMES}>
-          &nbsp;{getRomanNumeral(keyName, toBasicChord(chord))}
+          &nbsp;{getRomanNumeral(keyName, chord.getRootAndSuffix())}
         </span>)}
       <Button isIconOnly size="sm" title="Delete" onClick={removeChord} className="bg-slate-950 ml-12">
         ✕

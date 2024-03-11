@@ -1,6 +1,6 @@
 import { Button, Switch } from "@nextui-org/react";
 import type { MetaFunction } from "@remix-run/cloudflare";
-import { noteFromMidi, chordForDisplay, detectChord, Chord, noteForDisplay, detectKey, toKeyName, getRomanNumeral, toBasicChord, isDiatonic } from "noteynotes";
+import { Chord, detectChords, detectKey, noteForDisplay, noteFromMidi, toKeyName } from "noteynotes";
 import { useCallback, useEffect, useState } from "react";
 import DetectedKey from "~/components/DetectedKey";
 import { listenForMidi } from "~/midi";
@@ -26,7 +26,7 @@ export default function Index() {
   const [timeOffset, setTimeOffset] = useState<number>(0)
   const [isKeyLocked, setKeyLocked] = useState<boolean>(false)
 
-  const { sortedNotes, noteSet, includeNote, excludeNote, toggleNote, reset: resetNotes } = useNoteSet()
+  const { sortedNotes, includeNote, excludeNote, toggleNote, reset: resetNotes } = useNoteSet()
   const { chords, push, reset: resetChords, removeChord } = useChords()
   const { noteOn, noteOff, noteInstant, reset: resetHistogram, maximum: histogramMaximum, computed: computedHistogram } = useNoteHistogram()
   const { setGuessedKeys, chosenKey, setChosenKey } = useKey()
@@ -83,11 +83,15 @@ export default function Index() {
   }, [tapTimestamps])
 
   useEffect(() => {
-    if (noteSet.size < 2) {
+    if (sortedNotes.length < 2) {
       setPendingChord(undefined)
+    } else {
+      const resolvedChords = detectChords(sortedNotes)
+      if (resolvedChords.length > 1) {
+        console.log('multiple chords detected, choosing first...', resolvedChords)
+      }
+      setPendingChord(resolvedChords[0])
     }
-    const resolvedChord = detectChord(sortedNotes)
-    setPendingChord(resolvedChord)
   }, [sortedNotes])
 
   // note histogram ==> keys
@@ -139,7 +143,7 @@ export default function Index() {
 
       <div className="text-8xl flex justify-center bg-pink-950 p-16 rounded-xl my-4">
         <span style={{ textShadow: "6px 6px 0px rgba(0,0,0,0.4)" }}>
-          {pendingChord ? chordForDisplay(pendingChord, { keyName }) : "--"}
+          {pendingChord?.forDisplay({ keyName }) ?? "--"}
         </span>
       </div>
 
