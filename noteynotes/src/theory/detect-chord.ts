@@ -14,11 +14,12 @@ const scoreChord = (chord: Chord) => -(
 
 // which index represents the root note in a given inversion?
 const inversionToRoot = (inversion: number, triadLength: number): number => {
-  if (triadLength === 3) {
+  if (triadLength === 2) {
+    // real triad
     if (inversion === 0) return 0
     if (inversion === 1) return 2
     return 1
-  } else {
+  } else if (triadLength === 1) {
     // power chord triads
     // FIXME: there's gotta be a better way.
     return inversion
@@ -73,7 +74,7 @@ export const detectChords = (notesWithOctaves: Note[]): Chord[] => {
         const rootIndex = sortedMidiNotes.findIndex(x => midiIdentity(x) === rootIdentity)        
       
         // TODO: remove debug logging
-        // console.log(coreIntervals, cumTriad)
+        // console.log(`detected ${name} triad ${triad}, inv=${inversion}`)
         // console.log(sortedMidiNotes.length, rootIdentity, rootIndex)
         // if (rootIndex === -1) {
         //   debugger
