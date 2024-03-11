@@ -19,7 +19,7 @@ const inversionToRoot = (inversion: number, triadLength: number): number => {
     if (inversion === 0) return 0
     if (inversion === 1) return 2
     return 1
-  } else if (triadLength === 1) {
+  } else {
     // power chord triads
     // FIXME: there's gotta be a better way.
     return inversion
