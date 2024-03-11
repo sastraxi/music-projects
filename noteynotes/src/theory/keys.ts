@@ -1,8 +1,8 @@
 import { Interval, PcSet } from "tonal"
-import { ALL_GUITAR_CHORDS, Chord, ExplodedChord, explodeChord, getGuitarNotes } from "../instrument/guitar"
-import { DEFAULT_RESTRICTED_MODES, MAJOR_MODES_BY_DEGREE, MAJOR_SCALES, Note, ScaleName, keynameToNotes, normalizedNoteName, noteNameEquals, stripOctave } from "./common"
+import { ALL_GUITAR_CHORDS, getGuitarNotes } from "../instrument/guitar"
+import { DEFAULT_RESTRICTED_MODES, MAJOR_MODES_BY_DEGREE, MAJOR_SCALES, Note, RootAndSuffix, ScaleName, keynameToNotes, normalizedNoteName, noteIdentity, noteNameEquals, noteToMidi, stripOctave } from "./common"
 import { getTriadNotes } from "./triads"
-import { FullChord, getBasicChordNotes } from "./chords"
+import { Chord } from "./chords"
 
 export type ChordSearchParams = {
   /**
@@ -10,11 +10,6 @@ export type ChordSearchParams = {
    */
   scaleNotes: string[],
   maxAccidentals?: number
-}
-
-export type ChordAndAccidentals = {
-  chord: ExplodedChord
-  accidentalScaleDegreesWithOctaves: number[]
 }
 
 /**
@@ -31,24 +26,21 @@ export type NoteHistogramBuckets = [
  * How many semitones are between the two given notes?
  * The result is not well-defined if octaves are not given.
  */
-const semitoneDistance = (from: Note, to: Note): number => {
-  const semitones = Interval.semitones(Interval.distance(from, to))
-  if (semitones === undefined) throw new Error(`semitone distance from ${from} to ${to} is undefined`)
-  return semitones
-}
+const semitoneDistance = (from: Note, to: Note) =>
+  Math.abs(noteToMidi(from) - noteToMidi(to))
 
 /**
  * Which chords are inside of the scale we're interested in?
  */
 export const chordsMatchingCondition = ({
   scaleNotes,
-}: ChordSearchParams): Array<ChordAndAccidentals> => {
+}: ChordSearchParams): Array<Chord> => {
   const inScale = PcSet.isNoteIncludedIn(scaleNotes)
 
-  const matchingChords: Array<ChordAndAccidentals> = []
-  for (const chord of ALL_GUITAR_CHORDS) {
-    const notes = getGuitarNotes(chord, 0)  // XXX: is first chord most indicative?
-    const triad = getTriadNotes(chord)
+  const matchingChords: Array<Chord> = []
+  for (const guitarChord of ALL_GUITAR_CHORDS) {
+    const notes = getGuitarNotes(guitarChord, 0)  // XXX: is first chord most indicative?
+    const triad = getTriadNotes(guitarChord)
     if (!triad || !triad.every(inScale)) {
       // can't fit this note into any major scale (or our specific one)
       continue
@@ -57,10 +49,10 @@ export const chordsMatchingCondition = ({
     // skip chords that don't have the root and bass note in scale
     // TODO: should we look at all notes below root?
     const bassNote = notes[0]
-    const rootNote = notes.find(n => noteNameEquals(n, chord.root))
+    const rootNote = notes.find(n => noteNameEquals(n, guitarChord.root))
     if (!rootNote) {
       // this indicates an incorrect chord in guitar.json
-      console.error(`Incorrect chord in guitar.json: ${chord.root} ${chord.suffix}, but ${notes}`)
+      console.error(`Incorrect chord in guitar.json: ${guitarChord.root} ${guitarChord.suffix}, but ${notes}`)
       continue
     }
     if (!inScale(bassNote)) {
@@ -68,14 +60,11 @@ export const chordsMatchingCondition = ({
     }
 
     // how many accidentals overall in the chord?
-    const accidentals = notes
+    const chord = Chord.lookup(guitarChord)
+    chord.accidentals = notes
       .filter(note => !inScale(note))
       .map(note => semitoneDistance(rootNote, note))
-
-    matchingChords.push({
-      chord,
-      accidentalScaleDegreesWithOctaves: accidentals,
-    })
+    matchingChords.push(chord)
   }
   return matchingChords
 }
@@ -85,7 +74,7 @@ export const chordsMatchingCondition = ({
  * N.B. only does keys based on the major scales right now.
  */
 export const keysIncludingChord = (
-  chord: ExplodedChord,
+  chord: RootAndSuffix,
   notes: Array<Note>,
   {
     maxAccidentals = 0,
@@ -133,14 +122,14 @@ export const keysIncludingChord = (
 /**
  * Is the given chord diatonic in the key?
  */
-export const isDiatonic = (chord: FullChord, keyName: string) => {
-  const chordNotes = getBasicChordNotes(chord).map(normalizedNoteName)
-  const keyNotes = keynameToNotes(keyName).map(normalizedNoteName)
+export const isDiatonic = (chord: Chord, keyName: string) => {
+  const chordNotes = chord.getBasicNotes().map(noteIdentity)
+  const keyNotes = keynameToNotes(keyName).map(noteIdentity)
   return chordNotes.every(x => keyNotes.includes(x))
 }
 
 export const inKeyPredicate = (keyName: string) => {
-  const keyNotes = keynameToNotes(keyName).map(normalizedNoteName)
+  const keyNotes = keynameToNotes(keyName).map(noteIdentity)
   return (note: Note) =>
-    keyNotes.includes(normalizedNoteName(stripOctave(note)))
+    keyNotes.includes(noteIdentity(note))
 }

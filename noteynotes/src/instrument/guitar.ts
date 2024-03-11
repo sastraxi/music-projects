@@ -1,6 +1,7 @@
 import GuitarChords from './guitar.json'  // see README.md
 import { transpose, Interval, } from 'tonal'
-import { Note, NoteDisplayContext, displayAccidentals, normalizedNoteName, noteForDisplay } from '../theory/common'
+import { ChordName, Note, NoteDisplayContext, RootAndSuffix, normalizedNoteName, noteForDisplay } from '../theory/common'
+import { Chord } from '../theory/chords'
 
 type ChordLibraryEntry = {
   key: string,
@@ -14,14 +15,6 @@ export type Fretting = {
   baseFret: number,
   capo?: boolean
   barres: number[]
-}
-
-export type Chord = string
-export type ChordSuffix = string
-
-export type ExplodedChord = {
-  root: string
-  suffix: ChordSuffix
 }
 
 const STANDARD_TUNING = ['E2', 'A2', 'D3', 'G3', 'B3', 'E4']
@@ -42,14 +35,14 @@ const translateKeyMap: Record<string, string> = {
 const allKeysInDescLength = [...GuitarChords.keys, ...Object.keys(translateKeyMap)]
 allKeysInDescLength.sort((a, b) => b.length - a.length)
 
-export const isOverChord = ({ suffix }: ExplodedChord) => suffix.includes('/')
+export const isOverChord = ({ bass }: Chord) => bass !== undefined
 
 /**
  * Gets a root and a suffix for lookup in the guitar chords database.
  * @param chordName descriptive chord name, e.g. "A#minor"
  * @returns { root, suffix } e.g. { root: "Bb", suffix: "minor" }
  */
-export const explodeChord = (chordName: Chord): ExplodedChord => {
+export const explodeChord = (chordName: ChordName): RootAndSuffix => {
   let root, suffix
   for (const prefix of allKeysInDescLength) {
     if (chordName.startsWith(prefix)) {
@@ -65,26 +58,23 @@ export const explodeChord = (chordName: Chord): ExplodedChord => {
   throw new Error(`Could not find root for chord name: ${chordName}`)
 }
 
-export const combineChord = (chord: ExplodedChord): Chord => `${chord.root} ${chord.suffix}`
+export const chordEquals = (a: Chord, b: Chord) =>
+  normalizedNoteName(a.root) === normalizedNoteName(b.root) &&
+  a.names[0] === b.names[0]  // FIXME: not a great way to do it
 
-export const chordEquals = (a: ExplodedChord, b: ExplodedChord) =>
+export const rootAndSuffixEquals = (a: RootAndSuffix, b: RootAndSuffix) =>
   normalizedNoteName(a.root) === normalizedNoteName(b.root) &&
   a.suffix === b.suffix
-
-export const basicChordForDisplay = (chord: Chord | ExplodedChord, context: NoteDisplayContext = {}) => {
-  const { root, suffix } = (typeof chord === 'string' ? explodeChord(chord) : chord)
-  const space = suffix.startsWith('/') ? '' : ' '
-  return `${noteForDisplay(root, context)}${space}${displayAccidentals(suffix)}`
-}
 
 /**
  * Looks up all guitar chords for a given chord name in chords-db.
  * @param chordName the chord name, e.g. C/D#, Emmaj7b5, F major
  * @returns 
  */
-export const getFrettings = (chord: Chord | ExplodedChord): Fretting[] => {
+export const getFrettings = (chord: ChordName | RootAndSuffix): Fretting[] => {
   const { root, suffix } = (typeof chord === 'string' ? explodeChord(chord) : chord)
 
+  // FIXME: should do reverse lookup in translateKeyMap
   const lookupKey = root.replace("#", "sharp")  // who knows!
   const allSuffixes: Array<ChordLibraryEntry> = (GuitarChords.chords as Record<string, any>)[lookupKey]
   const frettings: Array<Fretting> | undefined = allSuffixes.find(x => x.suffix === suffix)?.positions
@@ -103,7 +93,7 @@ export const getFrettings = (chord: Chord | ExplodedChord): Fretting[] => {
  * @returns e.g. ["A2", "C3", "E3"], from lowest-to-highest frequency
  */
 export const getGuitarNotes = (
-  chord: Chord | ExplodedChord,
+  chord: ChordName | RootAndSuffix,
   variant: number
 ): Array<Note> => {
   const frettings = getFrettings(chord)
@@ -120,6 +110,7 @@ type StringNumber = number
 type FretNumber = number
 type Label = string
 type GuitarString = [StringNumber, FretNumber, Label?] | [StringNumber, 'x']
+
 export type ChordDefinition = {
   notes: Note[],
 
@@ -166,7 +157,11 @@ export const frettingToVexChord = (
   }
 }
 
-export const ALL_GUITAR_CHORDS: Array<ExplodedChord> = []
+/**
+ * All guitar chords, reduced down to their root and suffix.
+ * The root notes are as they are seen in the keys on translateKeyMap.
+ */
+export const ALL_GUITAR_CHORDS: Array<RootAndSuffix> = []
 {
   Object.keys(GuitarChords.chords).forEach(lookupKey => {
     const rootNote = lookupKey.replace('sharp', '#')

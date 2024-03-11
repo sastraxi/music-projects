@@ -1,19 +1,17 @@
-import { cumulative, relativeToFirst, shortestOf, unique } from "../util"
-import { CONSIDERED_NOTE_NAMES, Note, NoteDisplayContext, explodeNote, noteForDisplay, stripOctave } from "./common"
-import { AUGMENTED_TRIAD, DIMINISHED_TRIAD, MAJOR_DIM_TRIAD, MAJOR_TRIAD, MINOR_TRIAD, POWER_TRIAD, SUS2_TRIAD, SUS4_TRIAD, Triad } from "./triads"
-import { Chord, ExplodedChord, explodeChord } from "../instrument/guitar"
-import { Interval, distance, interval, transpose, Note as TonalNote } from "tonal"
+import { cumulative, shortestOf, unique } from "../util"
+import { ChordName, ChordSuffix, CONSIDERED_NOTE_NAMES, displayAccidentals, midiIdentity, Note, NoteDisplayContext, noteForDisplay, noteIdentity, noteToMidi, RootAndSuffix, stripOctave } from "./common"
+import { TRIAD_LIBRARY, Triad, TriadName } from "./triads"
+import { explodeChord } from "../instrument/guitar"
+import { Interval, distance, interval, transpose } from "tonal"
 
-/**
- * A member of the CHORD_LIBRARY
- */
-export type ChordType = {
-  /**
-   * What names are this chord known by?
-   * e.g. a major diminished chord is known by both "b5" and "alt"
-   *      a major chord is known by both "major" and "maj" and ""
-   */
+export type ChordArchetype = {
   names: string[]
+
+  /**
+   * What is the name (key in TRIAD_LIBRARY) of the triad
+   * this chord was built from?
+   */
+  triadName: TriadName
 
   /**
    * What should be considered the base triad of this chord?
@@ -25,21 +23,20 @@ export type ChordType = {
   /**
    * In integer notation; semitones above the root note.
    */
-  extensions?: number[]
-}
-
-export type FullChord = {
-  rootNote: Note
-  bassNote?: Note
-  type: ChordType
-  extraIntervals?: number[]
+  extensions: number[]
 }
 
 export const ALL_CHORD_NAMES: Array<string> = []
-export const CHORD_LIBRARY: Record<string, ChordType> = {}
+export const CHORDS_BY_TRIAD: Partial<Record<TriadName, ChordArchetype[]>> = {}
+export const CHORD_LIBRARY: Record<string, ChordArchetype> = {}
 {
-  const add = (names: string[], baseTriad: Triad, extensions?: number[]) => {
-    const chordType = { names, baseTriad, extensions }
+  const add = (names: string[], triadName: TriadName, extensions: number[] = []) => {
+    const chordType: ChordArchetype = {
+      names,
+      baseTriad: TRIAD_LIBRARY[triadName][0],
+      triadName,
+      extensions,
+    }
     chordType.names.forEach((name) => {
       if (name in CHORD_LIBRARY) throw new Error(`Duplicate chord type name: ${name}`)
       CHORD_LIBRARY[name] = chordType
@@ -47,48 +44,51 @@ export const CHORD_LIBRARY: Record<string, ChordType> = {}
         // N.B. we won't enumerate over chords
         ALL_CHORD_NAMES.push(`${note} ${name}`)
       })
-    })
-
+    })    
+    if (!CHORDS_BY_TRIAD[triadName]) {
+      CHORDS_BY_TRIAD[triadName] = []
+    }
+    CHORDS_BY_TRIAD[triadName]!.push(chordType)
   }
-  add(['aug'], AUGMENTED_TRIAD)
-  add(['aug7'], AUGMENTED_TRIAD, [11])
-  add(['maj7♯11', '♯11'], AUGMENTED_TRIAD, [11, 18])  // lydian chord
+  add(['aug'], 'aug')
+  add(['aug7'], 'aug', [11])
+  add(['maj7♯11', '♯11'], 'aug', [11, 18])  // lydian chord
 
-  add(['', 'maj', 'major'], MAJOR_TRIAD)
-  add(['6'], MAJOR_TRIAD, [9])
-  add(['6add9'], MAJOR_TRIAD, [9, 14])
-  add(['7', 'majm7'], MAJOR_TRIAD, [10])
-  add(['7♯9'], MAJOR_TRIAD, [10, 15])  // hendrix chord
-  add(['maj7'], MAJOR_TRIAD, [11])
-  add(['maj9'], MAJOR_TRIAD, [11, 14])
-  add(['add9'], MAJOR_TRIAD, [14])
-  add(['11'], MAJOR_TRIAD, [10, 14, 17])
-  add(['add11'], MAJOR_TRIAD, [17])  // FIXME: is this right or should it be same as maj7 like we had previously?
-  add(['maj11'], MAJOR_TRIAD, [11, 14, 17])
-  add(['maj13'], MAJOR_TRIAD, [11, 14, 18, 21])
+  add(['', 'maj', 'major'], 'maj')
+  add(['6'], 'maj', [9])
+  add(['6add9'], 'maj', [9, 14])
+  add(['7', 'majm7'], 'maj', [10])
+  add(['7♯9'], 'maj', [10, 15])  // hendrix chord
+  add(['maj7'], 'maj', [11])
+  add(['maj9'], 'maj', [11, 14])
+  add(['add9'], 'maj', [14])
+  add(['11'], 'maj', [10, 14, 17])
+  add(['add11'], 'maj', [17])  // FIXME: is this right or should it be same as maj7 like we had previously?
+  add(['maj11'], 'maj', [11, 14, 17])
+  add(['maj13'], 'maj', [11, 14, 18, 21])
 
-  add(['b5'], MAJOR_DIM_TRIAD)
+  add(['b5'], 'b5')
 
-  add(['m', 'min', 'minor'], MINOR_TRIAD)
-  add(['m6', 'mmaj6'], MINOR_TRIAD, [9])
-  add(['m6/9'], MINOR_TRIAD, [9, 14])
-  add(['m7'], MINOR_TRIAD, [10])
-  add(['mmaj7', 'madd11'], MINOR_TRIAD, [11])
-  add(['m11'], MINOR_TRIAD, [10, 14, 17])
+  add(['m', 'min', 'minor'], 'min')
+  add(['m6', 'mmaj6'], 'min', [9])
+  add(['m6/9'], 'min', [9, 14])
+  add(['m7'], 'min', [10])
+  add(['mmaj7', 'madd11'], 'min', [11])
+  add(['m11'], 'min', [10, 14, 17])
 
-  add(['°', 'dim', 'm♭5'], DIMINISHED_TRIAD)
-  add(['°7', 'dim7'], DIMINISHED_TRIAD, [9])
-  add(['ø7'], DIMINISHED_TRIAD, [10])  // "half-diminished"
-  add(['°M7', 'dimM7', 'm♭5add11'], DIMINISHED_TRIAD, [11])
+  add(['°', 'dim', 'm♭5'], 'dim')
+  add(['°7', 'dim7'], 'dim', [9])
+  add(['ø7'], 'dim', [10])  // "half-diminished"
+  add(['°M7', 'dimM7', 'm♭5add11'], 'dim', [11])
 
-  add(['5'], POWER_TRIAD)
+  add(['5'], '5')
 
-  add(['sus2'], SUS2_TRIAD)
-  add(['7sus2'], SUS2_TRIAD, [11])
+  add(['sus2'], 'sus2')
+  add(['7sus2'], 'sus2', [11])
 
-  add(['sus4'], SUS4_TRIAD)
-  add(['7sus4'], SUS4_TRIAD, [11])
-  add(['9sus4'], SUS4_TRIAD, [10, 14])
+  add(['sus4'], 'sus4')
+  add(['7sus4'], 'sus4', [11])
+  add(['9sus4'], 'sus4', [10, 14])
 }
 
 class ChordNotFoundError extends Error {
@@ -97,26 +97,151 @@ class ChordNotFoundError extends Error {
   }
 }
 
+export class Chord {
 
-export const lookupChord = (chord: Chord | ExplodedChord): FullChord => {
-  const { root, suffix } = (typeof chord === 'string' ? explodeChord(chord) : chord);
-  const [baseSuffix, bassNote] = suffix.split('/')
-  const lookupKey = baseSuffix.trim().toLowerCase()
-  if (!(lookupKey in CHORD_LIBRARY)) {
-    throw new ChordNotFoundError(
-      `Could not find ${lookupKey} in chord library (from: ${root} ${suffix})`
+  /**
+   * What names are this chord known by?
+   * e.g. a major diminished chord is known by both "b5" and "alt"
+   *      a major chord is known by both "major" and "maj" and ""
+   */
+  names: ChordSuffix[]
+
+  /**
+   * What is the name (key in TRIAD_LIBRARY) of the triad
+   * this chord was built from?
+   */
+  triadName: TriadName
+  
+  /**
+   * Reference to the (relative) base triad intervals. Does not
+   * necessarily reflect the inversion this chord was built upon.
+   */
+  baseTriad: Triad
+
+  /**
+   * Octaveless root note of the chord.
+   */
+  root: Note
+
+  /**
+   * Octaveless bass note of the chord, if different than the root.
+   */
+  bass?: Note
+
+  /**
+   * Notes not included in the base triad but accounted for in the
+   * chord name. Represented as semitones above the root note.
+   */
+  extensions: number[]
+
+  /**
+   * Notes not included in the base triad and considered as extra
+   * notes on top of the resolved chord name. Represented as semitones
+   * above the root note.
+   * 
+   * Notes in the base triad but in different octaves should not be
+   * counted here.
+   */
+  accidentals: number[]
+
+  constructor(
+    archetype: ChordArchetype,
+    root: Note,
+    bass?: Note,
+    accidentals?: number[]
+  ) {
+    this.names = archetype.names
+    this.triadName = archetype.triadName
+    this.baseTriad = archetype.baseTriad
+    this.extensions = archetype.extensions
+    this.root = stripOctave(root)
+    this.bass = bass && stripOctave(bass) !== this.root ? stripOctave(bass) : undefined
+    this.accidentals = accidentals ?? []
+  }
+
+  /**
+   * Look up a chord based on its name.
+   */
+  static lookup(name: ChordName | RootAndSuffix): Chord {
+    const { root, suffix } = (typeof name === 'string' ? explodeChord(name) : name);
+
+    const [baseSuffix, bassNote] = suffix.split('/')
+    const lookupKey = baseSuffix.trim().toLowerCase()
+    if (!(lookupKey in CHORD_LIBRARY)) {
+      throw new ChordNotFoundError(
+        `Could not find ${lookupKey} in chord library (from: ${root} ${suffix})`
+      )
+    } 
+
+    return new Chord(CHORD_LIBRARY[lookupKey], root, bassNote)
+  }
+
+  /**
+   * Get the notes that make up this chord, optionally rooting it in a specific octave
+   * so that the notes have correct intervalic distances from each other.
+   * 
+   * @param chord the chord to get notes for
+   * @param octave if provided, the notes returned will have correct distances
+   *               relative to each other
+   */
+  getBasicNotes(
+    octave?: number
+  ): Note[] {
+    const rootNote = octave ? `${this.root}${octave}` : this.root
+    // we need unique here because of power chords + if a bass note is identical to the root note
+    const intervals = unique([
+      // the bass note
+      ...(this.bass ? [
+        -interval(distance(this.bass, this.root)).semitones!
+      ] : []),
+
+      // the root note
+      0,
+
+      // the triad
+      ...cumulative(this.baseTriad),
+
+      // the extensions
+      ...(this.extensions ?? []),
+    ])
+    return intervals.map(semitones =>
+      transpose(rootNote, Interval.fromSemitones(semitones))
     )
   }
-  return {
-    rootNote: stripOctave(root),
-    bassNote: bassNote ? stripOctave(bassNote) : undefined,
-    type: CHORD_LIBRARY[lookupKey],
+
+  /**
+   * Throws away extra intervals, accidentals, and bass note.
+   */
+  getBasicName(): ChordName {
+    return `${this.root} ${this.names[0]}`
   }
+
+  /**
+   * Throws away extra intervals, accidentals, and bass note.
+   */
+  getRootAndSuffix(): RootAndSuffix {
+    return {
+      root: this.root,
+      suffix: this.names[0]
+    }
+  }
+
+  /**
+   * Returns a string suitable for dispalying this chord to a user.
+   */
+  forDisplay(context: NoteDisplayContext = {}) {
+    const name = context.compact ? shortestOf(this.names)! : this.names[0]
+    const root = noteForDisplay(this.root, context)
+    const over = this.bass ? `/${noteForDisplay(this.bass, context)}` : ''
+    const space = context.compact ? ' ' : ''
+    return `${root}${space}${displayAccidentals(name)}${over}`
+  }
+
 }
 
-export const isValidChord = (chord: Chord | ExplodedChord): boolean => {
+export const isValidChord = (name: ChordName | RootAndSuffix): boolean => {
   try {
-    lookupChord(chord)
+    Chord.lookup(name)
     return true
   } catch (e) {
     // TODO: figure out a good way to work around:
@@ -125,51 +250,8 @@ export const isValidChord = (chord: Chord | ExplodedChord): boolean => {
   }
 }
 
-/**
- * Get the notes that make up this chord, optionally rooting it in a specific octave
- * so that the notes have correct intervalic distances from each other.
- * 
- * @param chord the chord to get notes for
- * @param octave if provided, the notes returned will have correct distances
- *               relative to each other
- */
-export const getBasicChordNotes = (
-  chord: FullChord,
-  octave?: number
-): Note[] => {
-  const rootNote = octave ? `${chord.rootNote}${octave}` : chord.rootNote
-  // we need unique here because of power chords + if a bass note is identical to the root note
-  const intervals = unique([
-    // the bass note
-    ...(chord.bassNote ? [
-      -interval(distance(chord.bassNote, chord.rootNote)).semitones!
-    ] : []),
-
-    // the root note
-    0,
-
-    // the triad
-    ...cumulative(chord.type.baseTriad),
-
-    // the extensions
-    ...(chord.type.extensions ?? []),
-  ])
-  return intervals.map(semitones =>
-    transpose(rootNote, Interval.fromSemitones(semitones))
-  )
+export const chordNameForDisplay = (chord: ChordName, context: NoteDisplayContext = {}) => {
+  const { root, suffix } = explodeChord(chord)
+  const space = suffix.startsWith('/') ? '' : ' '
+  return `${noteForDisplay(root, context)}${space}${displayAccidentals(suffix)}`
 }
-
-export const chordForDisplay = (chord: FullChord, context: NoteDisplayContext = {}) => {
-  const name = context.compact ? shortestOf(chord.type.names)! : chord.type.names[0]
-  const root = noteForDisplay(chord.rootNote, context)
-  const over = chord.bassNote ? `/${noteForDisplay(chord.bassNote, context)}` : ''
-  const space = context.compact ? ' ' : ''
-  const extra = chord.extraIntervals?.length ? ` +${chord.extraIntervals.join(',')}` : ''
-  return `${root}${space}${name}${over}${extra}`
-}
-
-/**
- * Throws away extra intervals + bass note.
- */
-export const toBasicChord = (chord: FullChord): Chord =>
-  `${chord.rootNote} ${chord.type.names[0]}`

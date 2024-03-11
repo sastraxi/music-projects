@@ -6,6 +6,25 @@ import { transpose, Scale, Interval, Note as TonalNote, Note } from 'tonal'
 export type Note = string
 
 /**
+ * e.g. Bb7m5, F# major
+ */
+export type ChordName = string
+
+/**
+ * e.g. 7m5, major, dim
+ */
+export type ChordSuffix = string
+
+/**
+ * Alternate way to represent a chord name.
+ * Use explodeChord to transform between the two representations.
+ */
+export type RootAndSuffix = {
+  root: Note
+  suffix: ChordSuffix
+}
+
+/**
  * How many distinct notes inside an octave? Enharmonics (notes with the
  * same pitch) are not considered to be distinct in this context.
  */
@@ -181,6 +200,14 @@ export const explodeNote = (note: Note): ExplodedNote => {
 
 export const combineNote = ({ name, octave }: ExplodedNote): Note => `${name}${octave ?? ''}`
 
+export const withOctave = (note: Note | ExplodedNote, octave: number): Note => {
+  const explodedNote = (typeof note === 'string' ? explodeNote(note) : note)
+  return combineNote({
+    ...explodedNote,
+    octave,
+  })
+}
+
 export const stripOctave = (note: Note | ExplodedNote) => {
   const explodedNote = (typeof note === 'string' ? explodeNote(note) : note)
   return explodedNote.name
@@ -222,6 +249,22 @@ export const noteToMidi = (note: Note): number => {
   }
   return midiEquivalent
 }
+
+/**
+ * Returns [0, 12) for each note, representing the enharmonic
+ * identity of this note (without considering octave).
+ */
+export const noteIdentity = (note: Note): number =>
+  noteToMidi(withOctave(note, 1)) % OCTAVE_SIZE  // FIXME: hacky!
+
+export const midiIdentity = (midiNote: number): number =>
+  midiNote % OCTAVE_SIZE
+
+/**
+ * Returns the note corresponding to a number in the octave.
+ */
+export const noteFromIdentity = (noteIdentity: number): Note =>
+  stripOctave(noteFromMidi(noteIdentity))
 
 /**
  * e.g. C major, F lydian

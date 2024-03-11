@@ -41,7 +41,7 @@ export const debounce = <F extends (...args: Parameters<F>) => ReturnType<F>>(
   func: F,
   waitFor: number,
 ) => {
-  let timeout: number | undefined
+  let timeout: any
 
   const debounced = (...args: Parameters<F>) => {
     if (timeout) clearTimeout(timeout)
