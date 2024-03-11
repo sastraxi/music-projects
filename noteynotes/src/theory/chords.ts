@@ -1,17 +1,17 @@
 import { cumulative, shortestOf, unique } from "../util"
-import { ChordName, ChordSuffix, CONSIDERED_NOTE_NAMES, displayAccidentals, Note, NoteDisplayContext, noteForDisplay, RootAndSuffix, stripOctave } from "./common"
+import { ChordName, ChordSuffix, CONSIDERED_NOTE_NAMES, displayAccidentals, midiIdentity, Note, NoteDisplayContext, noteForDisplay, noteIdentity, noteToMidi, RootAndSuffix, stripOctave } from "./common"
 import { TRIAD_LIBRARY, Triad, TriadName } from "./triads"
 import { explodeChord } from "../instrument/guitar"
 import { Interval, distance, interval, transpose } from "tonal"
 
-export type ChordClass = {
+export type ChordArchetype = {
   names: string[]
 
   /**
    * What is the name (key in TRIAD_LIBRARY) of the triad
    * this chord was built from?
    */
-  triadName: string
+  triadName: TriadName
 
   /**
    * What should be considered the base triad of this chord?
@@ -26,19 +26,12 @@ export type ChordClass = {
   extensions: number[]
 }
 
-// /**
-//  * Gets a string name for a chord
-//  * @param chord 
-//  */
-// export const nameChord = (chord: Chord, ) => {
-
-// }
-
 export const ALL_CHORD_NAMES: Array<string> = []
-export const CHORD_LIBRARY: Record<string, ChordClass> = {}
+export const CHORDS_BY_TRIAD: Partial<Record<TriadName, ChordArchetype[]>> = {}
+export const CHORD_LIBRARY: Record<string, ChordArchetype> = {}
 {
   const add = (names: string[], triadName: TriadName, extensions: number[] = []) => {
-    const chordType = {
+    const chordType: ChordArchetype = {
       names,
       baseTriad: TRIAD_LIBRARY[triadName][0],
       triadName,
@@ -51,8 +44,11 @@ export const CHORD_LIBRARY: Record<string, ChordClass> = {}
         // N.B. we won't enumerate over chords
         ALL_CHORD_NAMES.push(`${note} ${name}`)
       })
-    })
-
+    })    
+    if (!CHORDS_BY_TRIAD[triadName]) {
+      CHORDS_BY_TRIAD[triadName] = []
+    }
+    CHORDS_BY_TRIAD[triadName]!.push(chordType)
   }
   add(['aug'], 'aug')
   add(['aug7'], 'aug', [11])
@@ -114,11 +110,11 @@ export class Chord {
    * What is the name (key in TRIAD_LIBRARY) of the triad
    * this chord was built from?
    */
-  triadName: string
+  triadName: TriadName
   
   /**
-   * Reference to the base triad intervals.
-   * Does not reflect the true notes / inversion this chord was built upon.
+   * Reference to the (relative) base triad intervals. Does not
+   * necessarily reflect the inversion this chord was built upon.
    */
   baseTriad: Triad
 
@@ -133,14 +129,40 @@ export class Chord {
   bass?: Note
 
   /**
-   * In integer notation; semitones above the root note.
+   * Notes not included in the base triad but accounted for in the
+   * chord name. Represented as semitones above the root note.
    */
   extensions: number[]
 
   /**
+   * Notes not included in the base triad and considered as extra
+   * notes on top of the resolved chord name. Represented as semitones
+   * above the root note.
+   * 
+   * Notes in the base triad but in different octaves should not be
+   * counted here.
+   */
+  accidentals: number[]
+
+  constructor(
+    archetype: ChordArchetype,
+    root: Note,
+    bass?: Note,
+    accidentals?: number[]
+  ) {
+    this.names = archetype.names
+    this.triadName = archetype.triadName
+    this.baseTriad = archetype.baseTriad
+    this.extensions = archetype.extensions
+    this.root = stripOctave(root)
+    this.bass = bass && stripOctave(bass) !== this.root ? stripOctave(bass) : undefined
+    this.accidentals = accidentals ?? []
+  }
+
+  /**
    * Look up a chord based on its name.
    */
-  constructor(name: ChordName | RootAndSuffix) {
+  static lookup(name: ChordName | RootAndSuffix): Chord {
     const { root, suffix } = (typeof name === 'string' ? explodeChord(name) : name);
 
     const [baseSuffix, bassNote] = suffix.split('/')
@@ -151,15 +173,7 @@ export class Chord {
       )
     } 
 
-    this.root = stripOctave(root)
-    this.bass = bassNote && stripOctave(bassNote) !== this.root ? stripOctave(bassNote) : undefined
-
-    const archetype = CHORD_LIBRARY[lookupKey]
-
-    this.baseTriad = archetype.baseTriad
-    this.triadName = archetype.triadName
-    this.extensions = archetype.extensions
-    this.names = archetype.names
+    return new Chord(CHORD_LIBRARY[lookupKey], root, bassNote)
   }
 
   /**
@@ -217,7 +231,7 @@ export class Chord {
 
 export const isValidChord = (name: ChordName | RootAndSuffix): boolean => {
   try {
-    new Chord(name)
+    Chord.lookup(name)
     return true
   } catch (e) {
     // TODO: figure out a good way to work around:

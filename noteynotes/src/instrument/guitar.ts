@@ -35,7 +35,7 @@ const translateKeyMap: Record<string, string> = {
 const allKeysInDescLength = [...GuitarChords.keys, ...Object.keys(translateKeyMap)]
 allKeysInDescLength.sort((a, b) => b.length - a.length)
 
-export const isOverChord = ({ suffix }: Chord) => suffix.includes('/')
+export const isOverChord = ({ bass }: Chord) => bass !== undefined
 
 /**
  * Gets a root and a suffix for lookup in the guitar chords database.
@@ -58,11 +58,9 @@ export const explodeChord = (chordName: ChordName): RootAndSuffix => {
   throw new Error(`Could not find root for chord name: ${chordName}`)
 }
 
-export const combineChord = (chord: Chord): ChordName => `${chord.root} ${chord.suffix}`
-
 export const chordEquals = (a: Chord, b: Chord) =>
   normalizedNoteName(a.root) === normalizedNoteName(b.root) &&
-  a.suffix === b.suffix
+  a.names[0] === b.names[0]  // FIXME: not a great way to do it
 
 /**
  * Looks up all guitar chords for a given chord name in chords-db.

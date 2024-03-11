@@ -1,6 +1,6 @@
 import { upperBound } from "../util"
-import { ChordSuffix, isOverChord } from "../instrument/guitar"
-import { ChordAndAccidentals } from "./keys"
+import { isOverChord } from "../instrument/guitar"
+import { Chord, ChordSuffix } from ".."
 
 export type Flavour = {
   name: string
@@ -18,7 +18,7 @@ export type Flavour = {
    *          is less than or equal to 0, the chord in question will
    *          never be selected.
    */
-  chordWeightingFunc?: (candidate: ChordAndAccidentals) => number
+  chordWeightingFunc?: (candidate: Chord) => number
 
   suffixes?: {
     /**
@@ -51,9 +51,9 @@ const Basic: Flavour = {
 
 export const Balanced: Flavour = {
   name: "Balanced",
-  chordWeightingFunc: ({ chord, accidentalScaleDegreesWithOctaves }) => {
-    if (chord.suffix === 'major' || chord.suffix === 'minor') return 5000
-    return Math.pow(Math.max(1, 3 - accidentalScaleDegreesWithOctaves.length), 5)
+  chordWeightingFunc: (chord) => {
+    if (chord.names.includes('major') || chord.names.includes('minor')) return 5000
+    return Math.pow(Math.max(1, 3 - chord.accidentals.length), 5)
       + (isOverChord(chord) ? 8 : 0)
   },
   suffixes: {
@@ -63,9 +63,9 @@ export const Balanced: Flavour = {
 
 const ExtremelyWeird: Flavour = {
   name: "Extremely weird",
-  chordWeightingFunc: ({ accidentalScaleDegreesWithOctaves }) => {
+  chordWeightingFunc: (chord) => {
     // more accidentals --> more likely to be selected
-    return Math.pow(1 + accidentalScaleDegreesWithOctaves.length, 2)
+    return Math.pow(1 + chord.accidentals.length, 2)
   }
 }
 
@@ -83,16 +83,16 @@ export const FLAVOUR_CHOICES: Readonly<Array<Flavour>> = [
 
 export const getMakeFlavourChoice = (
   flavour: Flavour,
-  chords: Array<ChordAndAccidentals>,
+  chords: Array<Chord>,
 ) => {
   const weightingFunc = flavour.chordWeightingFunc ?? (() => 1)
 
   // apply whitelist / blacklist
-  let candidates: Array<ChordAndAccidentals>
+  let candidates: Array<Chord>
   if (flavour.suffixes?.whitelist) {
-    candidates = chords.filter(x => flavour.suffixes?.whitelist?.has(x.chord.suffix))
+    candidates = chords.filter(x => x.names.some(n => flavour.suffixes?.whitelist?.has(n)))
   } else if (flavour.suffixes?.blacklist) {
-    candidates = chords.filter(x => !flavour.suffixes?.blacklist?.has(x.chord.suffix))
+    candidates = chords.filter(x => x.names.every(n => !flavour.suffixes?.blacklist?.has(n)))
   } else {
     candidates = chords
   }
@@ -116,7 +116,7 @@ export const getMakeFlavourChoice = (
     chooseChord: () => {
       const needle = Math.random() * max
       const i = upperBound(cumulativeWeight, needle)  // binary search the weight
-      return candidates[i].chord
+      return candidates[i]
     },
   }
 }

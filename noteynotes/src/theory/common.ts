@@ -17,7 +17,7 @@ export type ChordSuffix = string
 
 /**
  * Alternate way to represent a chord name.
- * Use explodeChord / combineChord to transform between the two representations.
+ * Use explodeChord to transform between the two representations.
  */
 export type RootAndSuffix = {
   root: Note
@@ -241,6 +241,22 @@ export const noteToMidi = (note: Note): number => {
   }
   return midiEquivalent
 }
+
+/**
+ * Returns [0, 12) for each note, representing the enharmonic
+ * identity of this note (without considering octave).
+ */
+export const noteIdentity = (note: Note): number =>
+  noteToMidi(note) % OCTAVE_SIZE
+
+export const midiIdentity = (midiNote: number): number =>
+  midiNote % OCTAVE_SIZE
+
+/**
+ * Returns the note corresponding to a number in the octave.
+ */
+export const noteFromIdentity = (noteIdentity: number): Note =>
+  stripOctave(noteFromMidi(noteIdentity))
 
 /**
  * e.g. C major, F lydian
