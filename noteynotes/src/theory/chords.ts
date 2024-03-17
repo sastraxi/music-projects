@@ -11,7 +11,7 @@ export type ChordArchetype = {
    * What is the name (key in TRIAD_LIBRARY) of the triad
    * this chord was built from?
    */
-  triadName: TriadName
+  triadName?: TriadName
 
   /**
    * What should be considered the base triad of this chord?
@@ -22,6 +22,9 @@ export type ChordArchetype = {
 
   /**
    * In integer notation; semitones above the root note.
+   * These are extensions considered part of the inherent propert of the chord;
+   * combine with a Chord's accidentals to get the full set of intervals that
+   * exist outside of a chord's root / bass / base triad notes.
    */
   extensions: number[]
 }
@@ -109,8 +112,10 @@ export class Chord {
   /**
    * What is the name (key in TRIAD_LIBRARY) of the triad
    * this chord was built from?
+   * 
+   * If this is undefined, there is no triad (just the root alone).
    */
-  triadName: TriadName
+  triadName?: TriadName
   
   /**
    * Reference to the (relative) base triad intervals. Does not
@@ -131,6 +136,10 @@ export class Chord {
   /**
    * Notes not included in the base triad but accounted for in the
    * chord name. Represented as semitones above the root note.
+   * 
+   * These are extensions considered part of the inherent propert of the chord;
+   * combine with a Chord's accidentals to get the full set of intervals that
+   * exist outside of a chord's root / bass / base triad notes.
    */
   extensions: number[]
 

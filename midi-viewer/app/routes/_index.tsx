@@ -1,7 +1,7 @@
 import { Button } from "@nextui-org/button";
 import { Switch } from "@nextui-org/switch";
 import type { MetaFunction } from "@remix-run/cloudflare";
-import { Chord, detectChords, detectKey, noteForDisplay, noteFromMidi, toKeyName } from "noteynotes";
+import { Chord, detectChords, detectKey, noteForDisplay, noteFromMidi, noteToMidi, relativeToFirst, toKeyName } from "noteynotes";
 import { useCallback, useEffect, useState } from "react";
 import DetectedKey from "~/components/DetectedKey";
 import { listenForMidi } from "~/midi";
@@ -10,9 +10,12 @@ import { useKey } from "~/state/key";
 import { useNoteHistogram } from "~/state/note-histogram";
 import { useNoteSet } from "~/state/note-set";
 import { useUiState } from "~/state/ui";
+import { subscriptText } from "~/util";
 import ChordCard from "~/view/ChordCard";
 import OneUpContainer from "~/view/OneUpContainer";
 import Piano from "~/view/Piano";
+
+const U_2009_THIN_SPACE = ' '
 
 export const meta: MetaFunction = () => {
   return [
@@ -92,8 +95,26 @@ export default function Index() {
       const resolvedChords = detectChords(sortedNotes)
       if (resolvedChords.length > 1) {
         console.log('multiple chords detected, choosing first...', resolvedChords)
+      } else if (resolvedChords.length === 0) {
+        // TODO: should relativeToFirst chop off the first 0?
+        // FIXME: display w.r.t. current key (e.g. flat4 nat7)
+        const intervals = relativeToFirst(sortedNotes.map(noteToMidi)).slice(1)
+        const firstFewIntervals = intervals.slice(0, 6)
+        const nameParts = [
+          ...firstFewIntervals.map(x => `${x}`).map(subscriptText),
+          ...(firstFewIntervals.length < intervals.length ? [subscriptText('+')] : []),
+        ]
+        const name = U_2009_THIN_SPACE + nameParts.join(U_2009_THIN_SPACE) + U_2009_THIN_SPACE
+        const fallbackChord = new Chord({
+          baseTriad: [0],
+          extensions: intervals,
+          names: [name],
+          triadName: undefined,
+        }, sortedNotes[0])
+        setPendingChord(fallbackChord)
+      } else {
+        setPendingChord(resolvedChords[0])
       }
-      setPendingChord(resolvedChords[0])
     }
   }, [sortedNotes])
 

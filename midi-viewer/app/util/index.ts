@@ -50,3 +50,23 @@ export const debounce = <F extends (...args: Parameters<F>) => ReturnType<F>>(
 
   return debounced
 }
+
+export const SUBSCRIPT_MAP = {
+  '0': '₀',
+  '1': '₁',
+  '2': '₂',
+  '3': '₃',
+  '4': '₄',
+  '5': '₅',
+  '6': '₆',
+  '7': '₇',
+  '8': '₈',
+  '9': '₉',
+  '+': '₊',
+}
+
+export const subscriptText = (str: string): string =>
+  str.split('')
+    // @ts-ignore hmmm
+    .map(x => x in SUBSCRIPT_MAP ? SUBSCRIPT_MAP[x] : '')
+    .join('')
