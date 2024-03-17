@@ -96,7 +96,7 @@ export const MAJOR_MODES_BY_DEGREE = [
   "locrian",
 ]
 
-export const keynameToNotes = (keyName: string): Array<Note> =>
+export const keynameToNotes = (keyName: KeyName): Array<Note> =>
   Scale.get(keyName).notes.map(TonalNote.simplify)
 
 export const ROOT_NOTES: Array<Note> = []
@@ -276,4 +276,4 @@ export const noteFromIdentity = (noteIdentity: number): Note =>
 /**
  * e.g. C major, F lydian
  */
-export type ScaleName = string
+export type KeyName = string

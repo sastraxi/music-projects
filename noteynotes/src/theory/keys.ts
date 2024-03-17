@@ -1,8 +1,9 @@
-import { Interval, PcSet } from "tonal"
+import { NoteWithOctave, PcSet, Note as TonalNote } from "tonal"
 import { ALL_GUITAR_CHORDS, getGuitarNotes } from "../instrument/guitar"
-import { DEFAULT_RESTRICTED_MODES, MAJOR_MODES_BY_DEGREE, MAJOR_SCALES, Note, RootAndSuffix, ScaleName, keynameToNotes, normalizedNoteName, noteIdentity, noteNameEquals, noteToMidi, stripOctave } from "./common"
-import { getTriadNotes } from "./triads"
 import { Chord } from "./chords"
+import { DEFAULT_RESTRICTED_MODES, KeyName, MAJOR_MODES_BY_DEGREE, MAJOR_SCALES, Note, RootAndSuffix, combineNote, explodeNote, keynameToNotes, noteIdentity, noteNameEquals, noteToMidi } from "./common"
+import { getTriadNotes } from "./triads"
+
 
 export type ChordSearchParams = {
   /**
@@ -95,10 +96,10 @@ export const keysIncludingChord = (
     ? (getTriadNotes(chord) ?? notes)
     : notes
 
-  // find all scales that contain all the given scale notes,
+  // find all keys that contain all the given scale notes,
   // with a "slop" factor given by numAccidentals.
   // TODO: remove numAccidentals? We aren't using it (always 0).
-  const matchingScales: Array<ScaleName> = []
+  const matchingKeys: Array<KeyName> = []
   for (const scale of Object.values(MAJOR_SCALES)) {
     const inScale = PcSet.isNoteIncludedIn(scale)
 
@@ -110,13 +111,13 @@ export const keysIncludingChord = (
       scale.forEach((note, degree) => {
         const mode = MAJOR_MODES_BY_DEGREE[degree]
         if (!restrictedModes.includes(mode)) {
-          matchingScales.push(`${note} ${mode}`)
+          matchingKeys.push(`${note} ${mode}`)
         }
       })
     }
   }
 
-  return matchingScales
+  return matchingKeys
 }
 
 /**
@@ -132,4 +133,50 @@ export const inKeyPredicate = (keyName: string) => {
   const keyNotes = keynameToNotes(keyName).map(noteIdentity)
   return (note: Note) =>
     keyNotes.includes(noteIdentity(note))
+}
+
+const ALTERED_DEGREE = ['♭','♮','♯']
+const MODIFIERS = 'b♭#♯♮'
+
+const stripAccidentals = (note: Note) =>
+  note.replaceAll(MODIFIERS, '')
+
+/**
+ * Returns the given note relative to 
+ * 
+ * @param root 
+ * @param key 
+ * @param note 
+ * 
+ * @returns e.g. [']
+ */
+const notesAsScaleDegrees = (
+  notes: NoteWithOctave[],
+  options: { root: NoteWithOctave, key: KeyName },
+) => {
+  const scaleDegrees: string[] = []
+
+  // TODO: cache results for each 
+
+  const keyNotes = keynameToNotes(options.key)
+  const keyNotesWithoutAccidentals = keyNotes.map(stripAccidentals)  
+  for (const note of notes) {
+    // FIXME: is simplify necessary? what about octave when e.g. "B##4"?
+    const { name, octave } = explodeNote(TonalNote.simplify(note))
+    const noteNameWithoutAccidentals = stripAccidentals(name)
+    const scaleDegree = keyNotesWithoutAccidentals.includes(noteNameWithoutAccidentals)
+      ? keyNotesWithoutAccidentals.indexOf(name)
+      : keyNotesWithoutAccidentals.indexOf(TonalNote.enharmonic(name))
+
+    if (scaleDegree === -1) {
+      debugger
+    }
+
+    const distance = semitoneDistance(combineNote({ name: keyNotes[scaleDegree], octave }), note)
+    const degree = (distance === -1 || distance === 11 ? ALTERED_DEGREE[-1] : ALTERED_DEGREE[1])
+
+    // FIXME: this SUCKS
+  }
+
+  return scaleDegrees
 }
