@@ -6,6 +6,13 @@ import { transpose, Scale, Interval, Note as TonalNote, Note } from 'tonal'
 export type Note = string
 
 /**
+ * e.g. C, E, D#, Eb
+ */
+export type NoteWithoutOctave = string
+
+export type MidiNote = number
+
+/**
  * e.g. Bb7m5, F# major
  */
 export type ChordName = string
@@ -239,10 +246,10 @@ export const noteForDisplay = (
   return `${displayAccidentals(noteNameInContext)}${displayedOctave}`
 }
 
-export const noteFromMidi = (midiNote: number) =>
+export const noteFromMidi = (midiNote: MidiNote): Note =>
   TonalNote.fromMidi(midiNote);
 
-export const noteToMidi = (note: Note): number => {
+export const noteToMidi = (note: Note): MidiNote => {
   const midiEquivalent = TonalNote.midi(note)
   if (midiEquivalent === null || midiEquivalent === undefined) {
     throw new Error(`Could not convert note ${note} to MIDI`)
@@ -257,7 +264,7 @@ export const noteToMidi = (note: Note): number => {
 export const noteIdentity = (note: Note): number =>
   noteToMidi(withOctave(note, 1)) % OCTAVE_SIZE  // FIXME: hacky!
 
-export const midiIdentity = (midiNote: number): number =>
+export const midiIdentity = (midiNote: MidiNote): number =>
   midiNote % OCTAVE_SIZE
 
 /**

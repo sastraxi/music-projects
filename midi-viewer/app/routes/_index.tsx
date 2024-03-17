@@ -9,6 +9,7 @@ import { useChords } from "~/state/chords";
 import { useKey } from "~/state/key";
 import { useNoteHistogram } from "~/state/note-histogram";
 import { useNoteSet } from "~/state/note-set";
+import { useUiState } from "~/state/ui";
 import ChordCard from "~/view/ChordCard";
 import OneUpContainer from "~/view/OneUpContainer";
 import Piano from "~/view/Piano";
@@ -26,11 +27,12 @@ export default function Index() {
   const [tapTimestamps, setTapTimestamps] = useState<number[]>([])
   const [timeOffset, setTimeOffset] = useState<number>(0)
   const [isKeyLocked, setKeyLocked] = useState<boolean>(false)
-
+  
   const { sortedNotes, includeNote, excludeNote, toggleNote, reset: resetNotes } = useNoteSet()
   const { chords, push, reset: resetChords, removeChord } = useChords()
   const { noteOn, noteOff, noteInstant, reset: resetHistogram, maximum: histogramMaximum, computed: computedHistogram } = useNoteHistogram()
   const { setGuessedKeys, chosenKey, setChosenKey } = useKey()
+  const { notesBarVisible, toggleNotesBarVisibility } = useUiState()
 
   const pushTap = (ts: number) => setTapTimestamps(prev => [...prev, ts])
 
@@ -117,20 +119,31 @@ export default function Index() {
           MIDI chord visualizer
         </h1>
         <div className="flex space-x-2">
-          <Switch
-            isSelected={isLatching}
-            onValueChange={latching => { setLatching(latching); if (!latching) resetNotes() }}
-            classNames={{ base: "flex-row-reverse", label: "mr-2" }}
+          <Button
+            color={notesBarVisible ? "primary" : "default"}
+            onClick={toggleNotesBarVisibility}
+            className="text-3xl rounded-3xl min-w-0 p-4 pt-3"
+            title="Toggle notes bar"
+            size="lg"
           >
-            Latch
-          </Switch>
+            ♪
+          </Button>
+          <Button
+            color={isLatching ? "warning" : "default"}
+            onClick={() => { setLatching(!isLatching); if (isLatching) resetNotes() }}
+            className="text-3xl rounded-3xl min-w-0 p-1 pt-[2px] pl-[3px]"
+            title="Toggle latching mode"
+            size="lg"
+          >
+            🧊
+          </Button>
           <Button
             size="lg"
             color="primary"
             onClick={() => pushTap(performance.now() + (timeOffset ?? 0))}
-            isDisabled={pendingChord === undefined}
+            isDisabled={sortedNotes.length === 0}
           >
-            {pendingChord ? "Save chord (tap sustain)" : "No chord detected"}
+            Save chord
           </Button>
           <Button
             size="lg"
@@ -158,11 +171,13 @@ export default function Index() {
         />
       </div>
 
-      <div className="flex flex-row justify-center items-center min-h-8 mt-4">
-        <h2 className="text-2xl text-right pl-1">
-          {notesString}
-        </h2>
-      </div>
+      {notesBarVisible && (
+        <div className="flex flex-row justify-center items-center min-h-8 mt-4">
+          <h2 className="text-2xl text-right pl-1">
+            {notesString}
+          </h2>
+        </div>
+      )}
 
       <div className="flex flex-row justify-between items-center mt-8 mb-2">
         <h1 className="text-xl">

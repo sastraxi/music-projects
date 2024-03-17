@@ -1,5 +1,7 @@
 export * from './instrument/guitar';
 
+// export * from './progression/varying-chord';
+
 export * from './theory/chords';
 export * from './theory/common';
 export * from './theory/detect-chord';
