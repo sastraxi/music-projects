@@ -27,7 +27,6 @@ export const meta: MetaFunction = () => {
 export default function Index() {
   const [isLatching, setLatching] = useState<boolean>(false)
   const [pendingChord, setPendingChord] = useState<Chord>()
-  const [tapTimestamps, setTapTimestamps] = useState<number[]>([])
   const [timeOffset, setTimeOffset] = useState<number>(0)
   const [isKeyLocked, setKeyLocked] = useState<boolean>(false)
   
@@ -37,7 +36,12 @@ export default function Index() {
   const { setGuessedKeys, chosenKey, setChosenKey } = useKey()
   const { notesBarVisible, toggleNotesBarVisibility } = useUiState()
 
-  const pushTap = (ts: number) => setTapTimestamps(prev => [...prev, ts])
+  const saveChord = () => {
+    if (pendingChord) {
+      push(pendingChord)
+      setPendingChord(undefined)
+    }
+  }
 
   const midiCallback = useCallback((msg: MIDIMessageEvent) => {
     const [command, midiNote, velocity] = msg.data
@@ -65,9 +69,13 @@ export default function Index() {
         excludeNote(note)
       }
 
-    } else if (command === 176 && midiNote === 64 && velocity > 0) {
-      // sustain pedal; use it to switch chords for now
-      pushTap(msg.timeStamp)
+    } else if (command === 176 && midiNote === 64) {
+      // sustain pedal; use it to control latching mode
+      const shouldLatch = velocity > 0
+      if (isLatching !== shouldLatch) {
+        setLatching(shouldLatch)
+        if (!shouldLatch) resetNotes()
+      }
     }
   }, [isLatching, toggleNote])
 
@@ -77,16 +85,6 @@ export default function Index() {
   useEffect(() => {
     return listenForMidi(midiCallback)
   }, [midiCallback])
-
-  useEffect(() => {
-    if (tapTimestamps.length === 0) return
-    if (pendingChord) {
-      push(pendingChord)
-      setPendingChord(undefined)
-    }
-    resetNotes()
-    setTapTimestamps([])
-  }, [tapTimestamps])
 
   useEffect(() => {
     if (sortedNotes.length < 2) {
@@ -161,8 +159,8 @@ export default function Index() {
           <Button
             size="lg"
             color="primary"
-            onClick={() => pushTap(performance.now() + (timeOffset ?? 0))}
-            isDisabled={sortedNotes.length === 0}
+            onClick={saveChord}
+            isDisabled={sortedNotes.length < 2}
           >
             Save chord
           </Button>
