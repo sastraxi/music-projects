@@ -2,6 +2,7 @@ import { Chord } from 'noteynotes'
 import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
 import { remove } from '~/util'
+import { COMMON_STORAGE_OPTIONS } from './json-storage'
 
 type ChordState = {
   chords: Chord[],
@@ -37,7 +38,7 @@ export const useChords = create<ChordStateAndMutators>()(
     }),
     {
       name: 'midi-viewer-chords',
-      storage: createJSONStorage(() => localStorage)
+      storage: createJSONStorage(() => localStorage, COMMON_STORAGE_OPTIONS)
     }
   )
 )

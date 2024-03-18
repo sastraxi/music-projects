@@ -71,11 +71,11 @@ export default function Index() {
 
     } else if (command === 176 && midiNote === 64) {
       // sustain pedal; use it to control latching mode
-      const shouldLatch = velocity > 0
-      if (isLatching !== shouldLatch) {
-        setLatching(shouldLatch)
-        if (!shouldLatch) resetNotes()
-      }
+      // const shouldLatch = velocity > 0
+      // if (isLatching !== shouldLatch) {
+      //   setLatching(shouldLatch)
+      //   if (!shouldLatch) resetNotes()
+      // }
     }
   }, [isLatching, toggleNote])
 
@@ -93,7 +93,8 @@ export default function Index() {
       const resolvedChords = detectChords(sortedNotes)
       if (resolvedChords.length > 1) {
         console.log('multiple chords detected, choosing first...', resolvedChords)
-      } else if (resolvedChords.length === 0) {
+      }
+      if (resolvedChords.length === 0) {
         // TODO: should relativeToFirst chop off the first 0?
         // FIXME: display w.r.t. current key (e.g. flat4 nat7)
         const intervals = relativeToFirst(sortedNotes.map(noteToMidi)).slice(1)

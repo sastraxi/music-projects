@@ -22,6 +22,16 @@ export const keyEq = (a: LikelyKey, b: LikelyKey) => a.note === b.note && a.mode
 // 2 a lot works to establish phyrgian. Dorian needs a 6 boost, mixo a 7 boost,
 // and for minor I think we should probably boost the 3 and 7. Important that
 // every row has the same total, though!
+// const SCORE_MODIFIER_BY_RELATIVE_DEGREE = ([
+//   /* major      */ [4.0, 0.2, 2.0, -0.2, 2.5, -1.0, -0.3],
+//   /* dorian     */ [4.0, 0.2, 1.0, -0.2, 2.5, 1.0, -0.3],
+//   /* phrygian   */ [4.0, 1.5, 2.0, -0.2, 2.5, -1.0, -0.3],
+//   /* lydian     */ [4.0, 0.2, 2.0, 3, 2.5, -1.0, -0.3],
+//   /* mixolydian */ [4.0, 0.2, 2.0, -0.2, 2.5, -1.0, 1],
+//   /* minor      */ [4.0, 0.2, 2.5, -0.2, 2.5, -1.0, 1],
+//   /* locrian    */ [6.0, -2.0, 1.0, -0.2, 1.5, -1.0, -0.3],
+// ]).map((row) => row.map(x => x / sum(row)))
+
 const SCORE_MODIFIER_BY_RELATIVE_DEGREE = [
   4.0, 0.2, 2.0, -0.2, 2.5, -1.0, -0.3
 ]
