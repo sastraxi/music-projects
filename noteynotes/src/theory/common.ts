@@ -1,4 +1,5 @@
 import { transpose, Scale, Interval, Note as TonalNote, Note } from 'tonal'
+import { ChordNotFoundError } from './chords'
 
 /**
  * e.g. C, E2, D#, Eb4
@@ -191,7 +192,36 @@ export const untransformAccidentals = (s: string) =>
 /**
  * We require notes to be uppercase, and they can have an ocatve.
  */
-const NOTE_REGEX = /([ABCDEFG][#b]?)(\d+)?/
+const NOTE_REGEX = /^([ABCDEFG][#b]?)(\d+)?/
+
+export const explodeChord = (chordName: ChordName): RootAndSuffix => {
+  const parts = chordName.split(" ")
+  if (parts.length > 2) {
+    throw new ChordNotFoundError(`Unknown chord format: ${chordName}`)
+  } else if (parts.length == 2) {
+    return {
+      root: parts[0],
+      suffix: parts[1],
+    }
+  }
+ 
+  // FIXME: no spaces is tricky because "Bb5" could mean
+  // either "B maj w/flatted fifth" or "Bb power chord"
+  if (chordName.substring(1, 3) == 'b5') {
+    throw new ChordNotFoundError(`Ambiguous chord: ${chordName}`)
+  }
+
+  const match = NOTE_REGEX.exec(chordName)
+  if (!match) {
+    throw new ChordNotFoundError(`Chord does not start with a note: ${chordName}`)
+  }
+
+  const root = match[1]
+  return {
+    root,
+    suffix: chordName.substring(root.length).trim(),
+  }
+}
 
 /**
  * "Explodes" a note from string representation into { note, octave? }

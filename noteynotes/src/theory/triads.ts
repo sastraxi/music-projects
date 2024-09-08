@@ -1,6 +1,6 @@
 import { Interval, Progression, RomanNumeral, transpose } from "tonal"
-import { ALL_GUITAR_CHORDS, explodeChord } from "../instrument/guitar"
-import { ChordName, ChordSuffix, ENHARMONIC_DISPLAY_FOR_KEYNAME, Note, RootAndSuffix, displayAccidentals } from "./common"
+import { ALL_GUITAR_CHORDS } from "../instrument/guitar"
+import { ChordName, ChordSuffix, ENHARMONIC_DISPLAY_FOR_KEYNAME, Note, RootAndSuffix, displayAccidentals, explodeChord } from "./common"
 import { cumulative, memoize } from "../util"
 
 /**

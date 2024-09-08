@@ -1,7 +1,7 @@
 import GuitarChords from './guitar.json'  // see README.md
 import { transpose, Interval, } from 'tonal'
-import { ChordName, Note, NoteDisplayContext, RootAndSuffix, normalizedNoteName, noteForDisplay } from '../theory/common'
-import { Chord } from '../theory/chords'
+import { explodeChord, ChordName, Note, NoteDisplayContext, RootAndSuffix, normalizedNoteName, noteForDisplay } from '../theory/common'
+import { CHORD_SUFFIX_SYNONYMS, Chord, ChordNotFoundError } from '../theory/chords'
 
 type ChordLibraryEntry = {
   key: string,
@@ -42,7 +42,7 @@ export const isOverChord = ({ bass }: Chord) => bass !== undefined
  * @param chordName descriptive chord name, e.g. "A#minor"
  * @returns { root, suffix } e.g. { root: "Bb", suffix: "minor" }
  */
-export const explodeChord = (chordName: ChordName): RootAndSuffix => {
+export const chordForGuitarLibrary = (chordName: ChordName): RootAndSuffix => {
   let root, suffix
   for (const prefix of allKeysInDescLength) {
     if (chordName.startsWith(prefix)) {
@@ -55,7 +55,7 @@ export const explodeChord = (chordName: ChordName): RootAndSuffix => {
       return { root, suffix }
     }
   }
-  throw new Error(`Could not find root for chord name: ${chordName}`)
+  throw new ChordNotFoundError(`Could not find root for chord name: ${chordName}`)
 }
 
 export const chordEquals = (a: Chord, b: Chord) =>
@@ -74,13 +74,21 @@ export const rootAndSuffixEquals = (a: RootAndSuffix, b: RootAndSuffix) =>
 export const getFrettings = (chord: ChordName | RootAndSuffix): Fretting[] => {
   const { root, suffix } = (typeof chord === 'string' ? explodeChord(chord) : chord)
 
+  const synonymSuffixes = CHORD_SUFFIX_SYNONYMS[suffix]
+  if (!synonymSuffixes) {
+    throw new Error(`Unknown chord library suffix: ${suffix}!`)
+  }
+
   // FIXME: should do reverse lookup in translateKeyMap
   const lookupKey = root.replace("#", "sharp")  // who knows!
-  const allSuffixes: Array<ChordLibraryEntry> = (GuitarChords.chords as Record<string, any>)[lookupKey]
-  const frettings: Array<Fretting> | undefined = allSuffixes.find(x => x.suffix === suffix)?.positions
+  const allGuitarSuffixes: Array<ChordLibraryEntry> = (GuitarChords.chords as Record<string, any>)[lookupKey]
+  const frettings: Array<Fretting> | undefined = allGuitarSuffixes.find(
+    x => synonymSuffixes.includes(x.suffix)
+  )?.positions
+
   if (!frettings) {
-    console.log('Available suffixes:', allSuffixes.map(x => x.suffix))
-    throw new Error(`Could not find ${root} frettings for ${suffix}`)
+    console.log('Available guitar suffixes:', allGuitarSuffixes.map(x => x.suffix))
+    throw new Error(`Could not find guitar frettings for ${chord}`)
   }
 
   return frettings

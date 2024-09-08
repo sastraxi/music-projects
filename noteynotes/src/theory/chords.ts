@@ -1,7 +1,6 @@
 import { cumulative, shortestOf, unique } from "../util"
-import { ChordName, ChordSuffix, CONSIDERED_NOTE_NAMES, displayAccidentals, midiIdentity, Note, NoteDisplayContext, noteForDisplay, noteIdentity, noteToMidi, RootAndSuffix, stripOctave } from "./common"
+import { ChordName, ChordSuffix, CONSIDERED_NOTE_NAMES, displayAccidentals, explodeChord, Note, NoteDisplayContext, noteForDisplay, noteIdentity, noteToMidi, RootAndSuffix, stripOctave } from "./common"
 import { TRIAD_LIBRARY, Triad, TriadName } from "./triads"
-import { explodeChord } from "../instrument/guitar"
 import { Interval, distance, interval, transpose } from "tonal"
 
 export type ChordArchetype = {
@@ -32,6 +31,7 @@ export type ChordArchetype = {
 export const ALL_CHORD_NAMES: Array<string> = []
 export const CHORDS_BY_TRIAD: Partial<Record<TriadName, ChordArchetype[]>> = {}
 export const CHORD_LIBRARY: Record<string, ChordArchetype> = {}
+export const CHORD_SUFFIX_SYNONYMS: Record<string, string[]> = {}
 {
   const add = (names: string[], triadName: TriadName, extensions: number[] = []) => {
     const chordType: ChordArchetype = {
@@ -43,6 +43,7 @@ export const CHORD_LIBRARY: Record<string, ChordArchetype> = {}
     chordType.names.forEach((name) => {
       if (name in CHORD_LIBRARY) throw new Error(`Duplicate chord type name: ${name}`)
       CHORD_LIBRARY[name] = chordType
+      CHORD_SUFFIX_SYNONYMS[name] = names
       CONSIDERED_NOTE_NAMES.forEach((note) => {
         // N.B. we won't enumerate over chords
         ALL_CHORD_NAMES.push(`${note} ${name}`)
@@ -94,7 +95,7 @@ export const CHORD_LIBRARY: Record<string, ChordArchetype> = {}
   add(['9sus4'], 'sus4', [10, 14])
 }
 
-class ChordNotFoundError extends Error {
+export class ChordNotFoundError extends Error {
   constructor(msg: string) {
     super(msg)
   }

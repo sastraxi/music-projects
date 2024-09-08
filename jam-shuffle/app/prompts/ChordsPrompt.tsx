@@ -12,6 +12,7 @@ import { memoize, randomChoice, withReplacement } from '~/util'
 import {
   ALL_GUITAR_CHORDS,
   Balanced,
+  CHORD_LIBRARY,
   Chord,
   FLAVOUR_CHOICES, Flavour,
   KEY_NAMES_BASED_ON_MAJOR,
@@ -24,6 +25,7 @@ import {
   keynameToNotes,
   keysIncludingChord,
   rootAndSuffixEquals,
+  unique,
   untransformAccidentals
 } from 'noteynotes'
 
@@ -39,13 +41,17 @@ const GUITAR_CHORDS_IN_MAJOR_KEYS =
     .filter(x => !SUFFIXES_WE_CANT_MAKE_KEYS_FROM.includes(x.suffix))
 
 const ALL_GUITAR_CHORDS_WITH_BLANK_ACCIDENTALS: Array<Chord> =
-  GUITAR_CHORDS_IN_MAJOR_KEYS.map((m) => {
-    try {
-      return Chord.lookup(m)
-    } catch (e) {
-      console.warn(e)
-    }
-  })
+  GUITAR_CHORDS_IN_MAJOR_KEYS
+    .filter(chordType => chordType.suffix in CHORD_LIBRARY)
+    .map(m => Chord.lookup(m))
+
+const UNKNOWN_SUFFIXES = unique(
+  GUITAR_CHORDS_IN_MAJOR_KEYS
+    .map(chordType => chordType.suffix)
+    .filter(suffix => !(suffix in CHORD_LIBRARY))
+)
+
+console.warn('Unknown suffixes', UNKNOWN_SUFFIXES)
 
 ///////////////////////////
 
@@ -108,6 +114,7 @@ const generateKeyChoices = memoize((
   chord?: ChordChoice,
 ) => {
   if (chord) {  
+    console.log('CH', chord)
     const guitarNotes = getGuitarNotes(chord.chord, 0)
     const candidateKeys = keysIncludingChord(chord.chord, guitarNotes)
     return candidateKeys
