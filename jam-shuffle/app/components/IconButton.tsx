@@ -50,7 +50,7 @@ const IconButton = ({
     const buttonChildren = [
         <div key="circle" className="circle"></div>,
         <IconElement key="icon" />,
-        children ? <span key="children">{children}</span> : <></>,
+        children ? <span key="children">{children}</span> : null,
     ]
 
     const classNames = ['iconButton']
