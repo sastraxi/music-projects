@@ -1,7 +1,6 @@
 packages:
 - noteynotes
 - midi-viewer
-- midi-viewer-ng
 - chordpad
 - jam-shuffle
 

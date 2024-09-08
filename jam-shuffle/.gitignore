@@ -1,3 +1,10 @@
+/.cache
+/build
+.env
+.dev.vars
+
+.wrangler
+
 # Logs
 logs
 *.log
@@ -30,6 +37,3 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
-
-# Local Netlify folder
-.netlify

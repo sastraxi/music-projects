@@ -1,16 +1,47 @@
-# Jam shuffle
+# Welcome to Remix + Cloudflare!
 
-[Try it out!](https://jam-shuffle.netlify.com/)
+- 📖 [Remix docs](https://remix.run/docs)
+- 📖 [Remix Cloudflare docs](https://remix.run/guides/vite#cloudflare)
 
-Break through creative block. Jam with your friends.
+## Development
 
-## Getting started: development
+Run the dev server:
 
-1. `yarn`
-2. `yarn dlx @yarnpkg/sdks vscode`
-3. `yarn dev` (will try to install certificates and ask for root password)
+```sh
+npm run dev
+```
 
-## etc.
+To run Wrangler:
 
-- https://keen-slider.io/examples
+```sh
+npm run build
+npm run start
+```
 
+## Typegen
+
+Generate types for your Cloudflare bindings in `wrangler.toml`:
+
+```sh
+npm run typegen
+```
+
+You will need to rerun typegen whenever you make changes to `wrangler.toml`.
+
+## Deployment
+
+First, build your app for production:
+
+```sh
+npm run build
+```
+
+Then, deploy your app to Cloudflare Pages:
+
+```sh
+npm run deploy
+```
+
+## Styling
+
+This template comes with [Tailwind CSS](https://tailwindcss.com/) already configured for a simple default starting experience. You can use whatever css framework you prefer. See the [Vite docs on css](https://vitejs.dev/guide/features.html#css) for more information.
