@@ -31,6 +31,7 @@ export const keyEq = (a: LikelyKey, b: LikelyKey) => a.note === b.note && a.mode
 //   /* minor      */ [4.0, 0.2, 2.5, -0.2, 2.5, -1.0, 1],
 //   /* locrian    */ [6.0, -2.0, 1.0, -0.2, 1.5, -1.0, -0.3],
 // ]).map((row) => row.map(x => x / sum(row)))
+// FIXME: I tried that ^ and my first attempt was clearly worse
 
 const SCORE_MODIFIER_BY_RELATIVE_DEGREE = [
   4.0, 0.2, 2.0, -0.2, 2.5, -1.0, -0.3
