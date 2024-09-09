@@ -18,33 +18,32 @@ const ChordsPrompt = lazy(() => import('~/prompts/ChordsPrompt'));
 
 const App = () => {
   const category = useCategory()
-  const [dismissedSplash, setLocalDismissed] = useState<boolean>(hasDismissedSplash() ?? false)
+  // const [dismissedSplash, setLocalDismissed] = useState<boolean>(hasDismissedSplash() ?? false)
 
-  /////////////////////////////////////////////
-  // const [videoLoaded, setVideoLoaded] = useState(false)
+  // /////////////////////////////////////////////
+  // // const [videoLoaded, setVideoLoaded] = useState(false)
+
+  // // const backgroundVideo = <video
+  // //   id="background-video"
+  // //   src={BackgroundVideo}
+  // //   className={videoLoaded ? 'loaded' : ''}
+  // //   onLoadedData={() => setVideoLoaded(true)}
+  // //   autoPlay loop muted
+  // // />
+
+  // const dismissSplash = () => {
+  //     setLocalDismissed(true)
+  //     setDismissedSplash(true)
+  // }
+
+  // if (!dismissedSplash) return (
+  //   <>
+  //     {/* { backgroundVideo } */}
+  //     <SplashScreen onDismiss={dismissSplash} />
+  //   </>  
+  // )
 
   const LOADING_SPINNER = (<Spinner size="40px" />)
-
-  // const backgroundVideo = <video
-  //   id="background-video"
-  //   src={BackgroundVideo}
-  //   className={videoLoaded ? 'loaded' : ''}
-  //   onLoadedData={() => setVideoLoaded(true)}
-  //   autoPlay loop muted
-  // />
-
-  const dismissSplash = () => {
-      setLocalDismissed(true)
-      setDismissedSplash(true)
-  }
-
-  if (!dismissedSplash) return (
-    <>
-      {/* { backgroundVideo } */}
-      <SplashScreen onDismiss={dismissSplash} />
-    </>  
-  )
-
   return (
     <div id="root">
       {/* { backgroundVideo } */}

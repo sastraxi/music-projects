@@ -6,7 +6,7 @@ export const meta: MetaFunction = () => {
     { title: "jam-shuffle" },
     {
       name: "description",
-      content: "Jam with your friends",
+      content: "Break through creative block. Jam with your friends",
     },
   ];
 };
