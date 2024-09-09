@@ -441,6 +441,7 @@ const ChordsPrompt: React.FunctionComponent = () => {
               allChoices={possibleKeys}
               setChoice={(keyName) => setKey(keyName)}
               searchTransform={keyName => untransformAccidentals(keyName.replace(' ', ''))}
+              choicesList="above"
             />
           }
           {/* FIXME: better way to space these out */}
@@ -462,6 +463,7 @@ const ChordsPrompt: React.FunctionComponent = () => {
             allChoices={FLAVOUR_CHOICES}
             displayTransform={f => f.name}
             setChoice={setFlavour}
+            choicesList="above"
           />
         </ChoiceContainer>
       </div>

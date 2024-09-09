@@ -122,6 +122,7 @@ const ChordInput = ({
           allChoices={selectableChords}
           setChoice={chord => modifyChord({ chord })}
           searchTransform={chord => untransformAccidentals(Chord.lookup(chord).forDisplay({ keyName })).replace(' ', '')}
+          choicesList="above"
         />
         <span className="numeral">
           {romanNumeral}

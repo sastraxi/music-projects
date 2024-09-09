@@ -34,6 +34,7 @@ const CategorySelector = () => {
           displayTransform={category => category.displayName ?? category.type}
           allChoices={allCategories}
           setChoice={goToCategory}
+          choicesList="below"
         />
     </ChoiceContainer>
   )

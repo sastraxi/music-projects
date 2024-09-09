@@ -1,5 +1,7 @@
-import { FormEventHandler, useCallback, useEffect, useRef, useState } from 'react'
+import { FormEventHandler, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import './Choice.css'
+
+import useResizeObserver from '@react-hook/resize-observer'
 
 type Props<T> = {
     current: T
@@ -10,6 +12,7 @@ type Props<T> = {
     setChoice?: (newChoice: T) => void
     fullWidth?: boolean
     alignItems?: 'start' | 'center' | 'end'
+    choicesList?: 'above' | 'below' | null
     help?: string
     /**
      * Should we immediately go to the next value on click?
@@ -50,12 +53,15 @@ function Choice<ChoiceType,>({
     expandedDisplayTransform,
     fullWidth = false,
     alignItems = 'start',
+    choicesList = null,
 }: Props<ChoiceType>) {
     const rootRef = useRef<HTMLDivElement>(null)
     const unexpandedAnchorRef = useRef<HTMLButtonElement>(null)
     const expandedInputRef = useRef<HTMLInputElement>(null)
+    const positionerRef = useRef<HTMLDivElement>(null)
     const [expanded, setExpanded] = useState<boolean>(false)
     const [screenPosition, setScreenPosition] = useState<Partial<React.CSSProperties>>({})
+    const [listPosition, setListPosition] = useState<Partial<React.CSSProperties> | undefined>()    
     const [expandedQuery, setExpandedQuery] = useState<string>('')
     const [expandedSearchResults, setExpandedSearchResults] = useState<Array<ChoiceType> | undefined>()
 
@@ -75,6 +81,39 @@ function Choice<ChoiceType,>({
         }
         setExpanded(true)
     }, [expanded, alignItems, fullWidth])
+
+    // after the choice box has been rendered, we'll get its screen position
+    // and figure out where the list should be in respect to it
+    const updateListPosition = useCallback(() => {
+        if (!positionerRef.current) return
+        const { top, left } = cumulativeOffset(positionerRef.current)
+        const rect = positionerRef.current.getBoundingClientRect()
+
+        const bottomValue = `calc(100% - ${top - rect.height}px)`
+        const topValue = `${top + rect.height}px`
+
+        const xValue = alignItems === "start" ? {
+            "left": `${left}px`
+        } : {
+            "right": `${left + rect.width}px`
+        }
+
+        const alignmentValue = alignItems === "center" ? {
+            transform: "translateX(-50%)",
+        } : {}
+    
+        setListPosition({
+            ...xValue,
+            [choicesList == "below" ? "top" : "bottom"]: choicesList == "below" ? topValue : bottomValue,
+            ...alignmentValue,
+        })
+    }, [positionerRef])
+
+    useLayoutEffect(() => {
+        updateListPosition()
+    }, [positionerRef, screenPosition])
+
+    // useResizeObserver(positionerRef, e => updateListPosition(e.contentRect))
     
     const [pendingChoice, setPendingChoice] = useState<ChoiceType>(current)
     const getRelativeChoice = useCallback((from: ChoiceType, delta: number) => {
@@ -202,6 +241,14 @@ function Choice<ChoiceType,>({
             </>
         )
     }
+
+    const choicesListNode = choicesList && listPosition && (
+        <div className="positioner choices-list" style={listPosition}>
+            Chords<br/>
+            Chords
+        </div>
+    )
+
     return (
         <div
             className={rootClassNames}
@@ -222,8 +269,7 @@ function Choice<ChoiceType,>({
                 className="select-container"
                 onClick={() => closeExpandedMode(false)}
             >
-                <div className="positioner" style={screenPosition}>
-                    <div className="choices before" />
+                <div ref={positionerRef} className={`positioner choices-list.${choicesList}`} style={screenPosition}>
                     <a
                         className="balance-text current pending"
                         onClick={() => closeExpandedMode(true)}
@@ -237,13 +283,16 @@ function Choice<ChoiceType,>({
                         onChange={onExpandedInputReceived}
                     />
                 </div>
+                <div style={{ position: "relative", width: "100vw", "height": "100vh" }}>
+                    {choicesListNode}
+                </div>
                 <div className="explanation">
                     <p>
                         Use up/down, mouse wheel, or type to choose.<br/>
                         ESC cancels without setting the value.
                     </p>
                 </div>
-            </div>      
+            </div>
         </div>
     )
 }
