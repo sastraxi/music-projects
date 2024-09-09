@@ -118,6 +118,12 @@ function Choice<ChoiceType,>({
         }
 
         setExpandedQuery(found ? value : '')
+
+        if (!found && pendingChoice !== current) {
+            // reset to the value we started with
+            setPendingChoice(current)
+        }
+
     }
 
     // TODO: non-expanded key up / key down
@@ -177,7 +183,25 @@ function Choice<ChoiceType,>({
     ].filter(x => x).join(' ')
 
     // TODO: global help tooltip
+    let displayedNode: React.ReactNode
     const pendingDisplayTransform = expandedDisplayTransform ?? displayTransform
+    const transformedChoice = pendingDisplayTransform(pendingChoice)
+    if (typeof transformedChoice !== 'string') {
+        // TODO: allow custom visualization of query
+        displayedNode = transformedChoice
+    } else {
+        // display transform is toString, so we can show the pending query
+        displayedNode = (
+            <>
+                <span className="query-prefix">
+                    {transformedChoice.substring(0, expandedQuery.length)}
+                </span>
+                <span className="rest-of-choice">
+                    {transformedChoice.substring(expandedQuery.length)}
+                </span>
+            </>
+        )
+    }
     return (
         <div
             className={rootClassNames}
@@ -199,14 +223,12 @@ function Choice<ChoiceType,>({
                 onClick={() => closeExpandedMode(false)}
             >
                 <div className="positioner" style={screenPosition}>
-                    <div className="choices before">
-
-                    </div>
+                    <div className="choices before" />
                     <a
                         className="balance-text current pending"
                         onClick={() => closeExpandedMode(true)}
                     >
-                        {pendingDisplayTransform(pendingChoice)}
+                        {displayedNode}
                     </a>
                     <input
                         type="text"
@@ -214,11 +236,12 @@ function Choice<ChoiceType,>({
                         value={expandedQuery}
                         onChange={onExpandedInputReceived}
                     />
-                    <div className="choices after">
-                        <p className="explanation">
-                            Use up/down or mouse wheel to choose.
-                        </p>
-                    </div>
+                </div>
+                <div className="explanation">
+                    <p>
+                        Use up/down, mouse wheel, or type to choose.<br/>
+                        ESC cancels without setting the value.
+                    </p>
                 </div>
             </div>      
         </div>

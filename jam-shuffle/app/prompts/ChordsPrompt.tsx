@@ -10,14 +10,15 @@ import { usePromptChoices, useSetPromptChoice } from '~/state/app'
 import { memoize, randomChoice, withReplacement } from '~/util'
 
 import {
-  ALL_GUITAR_CHORDS_IN_CHORD_LIBRARY,
-  ALL_GUITAR_ROOT_SUFFIX_IN_CHORD_LIBRARY,
   Balanced,
   CHORD_LIBRARY,
   Chord,
   FLAVOUR_CHOICES, Flavour,
   GUITAR_CHORDS_IN_MAJOR_KEYS,
   KEY_NAMES_BASED_ON_MAJOR,
+  LIBRARY_GUITAR_CHORDS,
+  LIBRARY_GUITAR_CHORDS_IN_MAJOR_KEYS,
+  LIBRARY_GUITAR_CHORD_OBJECTS_IN_MAJOR_KEYS,
   chordEquals,
   chordsMatchingCondition,
   explodeChord,
@@ -125,7 +126,7 @@ const generateChordChoices = memoize((
 
   const scaleNotes = (keyName && !sameBaseTriadAs) ? keynameToNotes(keyName) : undefined
   let candidateChords = !scaleNotes
-    ? ALL_GUITAR_CHORDS_IN_CHORD_LIBRARY
+    ? LIBRARY_GUITAR_CHORD_OBJECTS_IN_MAJOR_KEYS
     : chordsMatchingCondition({ scaleNotes })
 
   if (sameBaseTriadAs) {
@@ -420,9 +421,8 @@ const ChordsPrompt: React.FunctionComponent = () => {
               key={chordIndex}
               keyName={keyName}
               selectableChords={chordIndex === 0
-                // FIXME: over-restrictive; need ALL_GUITAR_ROOT_SUFFIX_IN_MAJOR_SCALE_IN_CHORD_LIBRARY for latter
-                ? (keyLocked ? inKeyChords : ALL_GUITAR_ROOT_SUFFIX_IN_CHORD_LIBRARY)
-                : (chords[chordIndex].sourceSet === '🔑' ? inKeyChords : ALL_GUITAR_ROOT_SUFFIX_IN_CHORD_LIBRARY)
+                ? (keyLocked ? inKeyChords : LIBRARY_GUITAR_CHORDS_IN_MAJOR_KEYS)
+                : (chords[chordIndex].sourceSet === '🔑' ? inKeyChords : LIBRARY_GUITAR_CHORDS)
               }
               choice={chord}
               sourceSetOptions={sourceSetOptions}

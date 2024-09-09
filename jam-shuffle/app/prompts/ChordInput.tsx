@@ -65,6 +65,7 @@ const ChordInput = ({
     }
   ), [keyName, choice, frettings])
 
+  console.log('---key---', keyName)
   const romanNumeral = getRomanNumeral(keyName, choice.chord)
   const sourceSetTransform = sourceSetExpandedTransform(keyName)
 

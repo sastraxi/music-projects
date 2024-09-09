@@ -1,5 +1,5 @@
 import { NoteWithOctave, PcSet, Note as TonalNote } from "tonal"
-import { ALL_GUITAR_CHORDS_IN_CHORD_LIBRARY, ALL_GUITAR_ROOT_SUFFIX_IN_CHORD_LIBRARY, getGuitarNotes } from "../instrument/guitar"
+import { LIBRARY_GUITAR_CHORDS_IN_MAJOR_KEYS, getGuitarNotes } from "../instrument/guitar"
 import { Chord } from "./chords"
 import { ChordNotFoundError, DEFAULT_RESTRICTED_MODES, KeyName, MAJOR_MODES_BY_DEGREE, MAJOR_SCALES, Note, RootAndSuffix, combineNote, explodeNote, keynameToNotes, noteIdentity, noteNameEquals, noteToMidi } from "./common"
 
@@ -38,7 +38,7 @@ export const chordsMatchingCondition = ({
   const inScale = PcSet.isNoteIncludedIn(scaleNotes)
 
   const matchingChords: Array<Chord> = []
-  for (const { root, suffix } of ALL_GUITAR_ROOT_SUFFIX_IN_CHORD_LIBRARY) {
+  for (const { root, suffix } of LIBRARY_GUITAR_CHORDS_IN_MAJOR_KEYS) {
     try {
       const chord = Chord.lookup({ root, suffix })
       const notes = getGuitarNotes({ root, suffix }, 0)  // XXX: is first chord most indicative?

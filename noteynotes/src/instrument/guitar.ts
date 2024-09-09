@@ -186,24 +186,31 @@ export const ALL_GUITAR_CHORDS: Array<RootAndSuffix> = []
 
 ///////////////////////////
 
-const SUFFIXES_WE_CANT_MAKE_KEYS_FROM = ['aug', 'aug7', 'aug9']
+// sets of guitar chords restricted to those whose
+// notes all fall within the same major scale (or a mode)
+const SUFFIXES_WE_CANT_MAKE_MAJOR_KEYS_FROM = ['aug', 'aug7', 'aug9', 'mmaj7']
 
+export const LIBRARY_GUITAR_CHORDS: Array<RootAndSuffix> =
+  ALL_GUITAR_CHORDS
+    .filter(chordType => chordType.suffix in CHORD_LIBRARY)
+  
 export const GUITAR_CHORDS_IN_MAJOR_KEYS =
   ALL_GUITAR_CHORDS
-    .filter(x => !SUFFIXES_WE_CANT_MAKE_KEYS_FROM.includes(x.suffix))
+    .filter(x => !SUFFIXES_WE_CANT_MAKE_MAJOR_KEYS_FROM.includes(x.suffix))
+
+export const LIBRARY_GUITAR_CHORDS_IN_MAJOR_KEYS: Array<RootAndSuffix> =
+  GUITAR_CHORDS_IN_MAJOR_KEYS
+    .filter(chordType => chordType.suffix in CHORD_LIBRARY)
+  
+export const LIBRARY_GUITAR_CHORD_OBJECTS_IN_MAJOR_KEYS: Array<Chord> =
+  LIBRARY_GUITAR_CHORDS_IN_MAJOR_KEYS.map(m => Chord.lookup(m))
+
+  
+///////////////////////////
 
 export const UNKNOWN_GUITAR_SUFFIXES = unique(
-  GUITAR_CHORDS_IN_MAJOR_KEYS
+  ALL_GUITAR_CHORDS
     .map(chordType => chordType.suffix)
     .filter(suffix => !(suffix in CHORD_LIBRARY))
 )
-
-export const ALL_GUITAR_ROOT_SUFFIX_IN_CHORD_LIBRARY: Array<RootAndSuffix> =
-  GUITAR_CHORDS_IN_MAJOR_KEYS
-    .filter(chordType => chordType.suffix in CHORD_LIBRARY)
-
-export const ALL_GUITAR_CHORDS_IN_CHORD_LIBRARY: Array<Chord> =
-  ALL_GUITAR_ROOT_SUFFIX_IN_CHORD_LIBRARY.map(m => Chord.lookup(m))
-  
-  
 console.warn('Unknown suffixes', UNKNOWN_GUITAR_SUFFIXES)

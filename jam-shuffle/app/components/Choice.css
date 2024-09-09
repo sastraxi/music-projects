@@ -40,6 +40,11 @@ div.choice {
             cursor: pointer;
         }
 
+            div.choice > .select-container .current .query-prefix {
+                background-color: rgba(250, 190, 80, 0.5);
+                border-top: 4px dashed rgba(250, 130, 50, 1);
+            }
+
         div.choice > .select-container input[type=text] {
             position: absolute;
             opacity: 0;
@@ -88,4 +93,18 @@ div.choice {
           margin: -0.15em -0.4em;
           background-color: white;
           color: #213547;
+        }
+
+    div.explanation {
+        margin: 24px;
+    }
+    
+        div.explanation p {
+            padding: 8px 12px;
+            display: inline-block;
+            border: 3px dashed rgba(255, 255, 255, 0.3);
+            border-radius: 12px;
+
+            font-size: 18px;
+            font-weight: normal;
         }
