@@ -215,7 +215,9 @@ function Choice<ChoiceType,>({
                         onChange={onExpandedInputReceived}
                     />
                     <div className="choices after">
-
+                        <p className="explanation">
+                            Use up/down or mouse wheel to choose.
+                        </p>
                     </div>
                 </div>
             </div>      

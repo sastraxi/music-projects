@@ -21,6 +21,7 @@
     "@supabase/auth-ui-shared": "^0.1.6",
     "@supabase/supabase-js": "^2.24.0",
     "@tanstack/react-query": "^5.55.2",
+    "detect-it": "^4.0.1",
     "fast-json-stable-stringify": "^2.1.0",
     "isbot": "^4.1.0",
     "midi-sounds-react": "^1.2.54",

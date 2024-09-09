@@ -10,6 +10,8 @@ import Spinner from '~/components/Spinner';
 // import BackgroundVideo from '~/assets/smoke-1080p-30fps.mp4'
 import { hasDismissedSplash, setDismissedSplash } from '~/state/local';
 import SplashScreen from '~/components/SplashScreen';
+import { deviceType } from 'detect-it';
+import MouseSupportRequired from './MouseSupportRequired';
 
 const SingleIdea = lazy(() => import('~/prompts/SingleIdea'));
 const ContrastPrompt = lazy(() => import('~/prompts/ContrastPrompt'));
@@ -42,6 +44,10 @@ const App = () => {
   //     <SplashScreen onDismiss={dismissSplash} />
   //   </>  
   // )
+
+  if (deviceType == 'touchOnly') {
+    return <MouseSupportRequired />
+  }
 
   const LOADING_SPINNER = (<Spinner size="40px" />)
   return (
