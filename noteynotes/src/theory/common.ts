@@ -1,5 +1,10 @@
 import { transpose, Scale, Interval, Note as TonalNote, Note } from 'tonal'
-import { ChordNotFoundError } from './chords'
+
+export class ChordNotFoundError extends Error {
+  constructor(msg: string) {
+    super(msg)
+  }
+}
 
 /**
  * e.g. C, E2, D#, Eb4
@@ -194,6 +199,12 @@ export const untransformAccidentals = (s: string) =>
  */
 const NOTE_REGEX = /^([ABCDEFG][#b]?)(\d+)?/
 
+/**
+ * FIXME: this does not handle over chords... or does it?
+ * Depends on if they are before or after the suffix.
+ * @param chordName 
+ * @returns 
+ */
 export const explodeChord = (chordName: ChordName): RootAndSuffix => {
   const parts = chordName.split(" ")
   if (parts.length > 2) {

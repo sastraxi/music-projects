@@ -1,5 +1,5 @@
 import { cumulative, shortestOf, unique } from "../util"
-import { ChordName, ChordSuffix, CONSIDERED_NOTE_NAMES, displayAccidentals, explodeChord, Note, NoteDisplayContext, noteForDisplay, noteIdentity, noteToMidi, RootAndSuffix, stripOctave } from "./common"
+import { ChordName, ChordNotFoundError, ChordSuffix, CONSIDERED_NOTE_NAMES, displayAccidentals, explodeChord, Note, NoteDisplayContext, noteForDisplay, noteIdentity, noteToMidi, RootAndSuffix, stripOctave } from "./common"
 import { TRIAD_LIBRARY, Triad, TriadName } from "./triads"
 import { Interval, distance, interval, transpose } from "tonal"
 
@@ -31,7 +31,6 @@ export type ChordArchetype = {
 export const ALL_CHORD_NAMES: Array<string> = []
 export const CHORDS_BY_TRIAD: Partial<Record<TriadName, ChordArchetype[]>> = {}
 export const CHORD_LIBRARY: Record<string, ChordArchetype> = {}
-export const CHORD_SUFFIX_SYNONYMS: Record<string, string[]> = {}
 {
   const add = (names: string[], triadName: TriadName, extensions: number[] = []) => {
     const chordType: ChordArchetype = {
@@ -41,9 +40,10 @@ export const CHORD_SUFFIX_SYNONYMS: Record<string, string[]> = {}
       extensions,
     }
     chordType.names.forEach((name) => {
-      if (name in CHORD_LIBRARY) throw new Error(`Duplicate chord type name: ${name}`)
+      if (name in CHORD_LIBRARY) {
+        throw new Error(`Duplicate chord type name: ${name}`)
+      }
       CHORD_LIBRARY[name] = chordType
-      CHORD_SUFFIX_SYNONYMS[name] = names
       CONSIDERED_NOTE_NAMES.forEach((note) => {
         // N.B. we won't enumerate over chords
         ALL_CHORD_NAMES.push(`${note} ${name}`)
@@ -95,13 +95,9 @@ export const CHORD_SUFFIX_SYNONYMS: Record<string, string[]> = {}
   add(['9sus4'], 'sus4', [10, 14])
 }
 
-export class ChordNotFoundError extends Error {
-  constructor(msg: string) {
-    super(msg)
-  }
-}
-
 export class Chord {
+
+  archetype: ChordArchetype
 
   /**
    * What names are this chord known by?
@@ -160,6 +156,7 @@ export class Chord {
     bass?: Note,
     accidentals?: number[]
   ) {
+    this.archetype = archetype
     this.names = archetype.names
     this.triadName = archetype.triadName
     this.baseTriad = archetype.baseTriad
@@ -184,6 +181,18 @@ export class Chord {
     } 
 
     return new Chord(CHORD_LIBRARY[lookupKey], root, bassNote)
+  }
+
+  /**
+   * A clone of this Chord with a different value for accidentals.
+   */
+  withAccidentals(accidentals?: number[]): Chord {
+    return new Chord(
+      this.archetype,
+      this.root,
+      this.bass,
+      accidentals,
+    )
   }
 
   /**

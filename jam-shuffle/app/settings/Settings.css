@@ -1,5 +1,13 @@
-div.settingsContainer {
-}
+
 span.user {
     margin-right: 1.2em;
+}
+
+.settings .menuChildren {
+    padding: 48px;
+}
+
+.settings .menuChildren h2 {
+    font-size: 24px;
+    margin-top: 1em;
 }

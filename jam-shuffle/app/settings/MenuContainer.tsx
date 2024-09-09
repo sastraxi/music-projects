@@ -29,7 +29,7 @@ const MenuContainer = ({
                 "--menu-transition-time": `${DISPLAY_NONE_TIMEOUT_SEC}s`,
             } as React.CSSProperties}
         >
-            <div className="main" >
+            <div className="menuChildren" >
                 { children }
             </div>
         </div>

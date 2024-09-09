@@ -21,7 +21,7 @@ const App = () => {
   const [dismissedSplash, setLocalDismissed] = useState<boolean>(hasDismissedSplash() ?? false)
 
   /////////////////////////////////////////////
-  const [videoLoaded, setVideoLoaded] = useState(false)
+  // const [videoLoaded, setVideoLoaded] = useState(false)
 
   const LOADING_SPINNER = (<Spinner size="40px" />)
 
@@ -46,7 +46,7 @@ const App = () => {
   )
 
   return (
-    <>
+    <div id="root">
       {/* { backgroundVideo } */}
       <div className="top-bar">
         <CategorySelector />
@@ -58,7 +58,7 @@ const App = () => {
         { category.type === "playlist" && <PlaylistPrompt /> }
         { category.type === "chords" && <ChordsPrompt /> }
       </React.Suspense>
-    </>
+    </div>
   )
 }
 

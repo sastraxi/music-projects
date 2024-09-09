@@ -1,7 +1,8 @@
 import GuitarChords from './guitar.json'  // see README.md
 import { transpose, Interval, } from 'tonal'
-import { explodeChord, ChordName, Note, NoteDisplayContext, RootAndSuffix, normalizedNoteName, noteForDisplay } from '../theory/common'
-import { CHORD_SUFFIX_SYNONYMS, Chord, ChordNotFoundError } from '../theory/chords'
+import { explodeChord, ChordName, ChordNotFoundError, Note, NoteDisplayContext, RootAndSuffix, normalizedNoteName, noteForDisplay } from '../theory/common'
+import { CHORD_LIBRARY, Chord } from '../theory/chords'
+import { unique } from '../util'
 
 type ChordLibraryEntry = {
   key: string,
@@ -74,21 +75,21 @@ export const rootAndSuffixEquals = (a: RootAndSuffix, b: RootAndSuffix) =>
 export const getFrettings = (chord: ChordName | RootAndSuffix): Fretting[] => {
   const { root, suffix } = (typeof chord === 'string' ? explodeChord(chord) : chord)
 
-  const synonymSuffixes = CHORD_SUFFIX_SYNONYMS[suffix]
-  if (!synonymSuffixes) {
-    throw new Error(`Unknown chord library suffix: ${suffix}!`)
+  const archetype = CHORD_LIBRARY[suffix]
+  if (!archetype) {
+    throw new ChordNotFoundError(`Unknown chord library suffix: ${suffix}`)
   }
 
   // FIXME: should do reverse lookup in translateKeyMap
   const lookupKey = root.replace("#", "sharp")  // who knows!
   const allGuitarSuffixes: Array<ChordLibraryEntry> = (GuitarChords.chords as Record<string, any>)[lookupKey]
   const frettings: Array<Fretting> | undefined = allGuitarSuffixes.find(
-    x => synonymSuffixes.includes(x.suffix)
+    x => archetype.names.includes(x.suffix)
   )?.positions
 
   if (!frettings) {
     console.log('Available guitar suffixes:', allGuitarSuffixes.map(x => x.suffix))
-    throw new Error(`Could not find guitar frettings for ${chord}`)
+    throw new ChordNotFoundError(`Could not find guitar frettings for ${chord}`)
   }
 
   return frettings
@@ -182,3 +183,27 @@ export const ALL_GUITAR_CHORDS: Array<RootAndSuffix> = []
     )
   })
 }
+
+///////////////////////////
+
+const SUFFIXES_WE_CANT_MAKE_KEYS_FROM = ['aug', 'aug7', 'aug9']
+
+export const GUITAR_CHORDS_IN_MAJOR_KEYS =
+  ALL_GUITAR_CHORDS
+    .filter(x => !SUFFIXES_WE_CANT_MAKE_KEYS_FROM.includes(x.suffix))
+
+export const UNKNOWN_GUITAR_SUFFIXES = unique(
+  GUITAR_CHORDS_IN_MAJOR_KEYS
+    .map(chordType => chordType.suffix)
+    .filter(suffix => !(suffix in CHORD_LIBRARY))
+)
+
+export const ALL_GUITAR_ROOT_SUFFIX_IN_CHORD_LIBRARY: Array<RootAndSuffix> =
+  GUITAR_CHORDS_IN_MAJOR_KEYS
+    .filter(chordType => chordType.suffix in CHORD_LIBRARY)
+
+export const ALL_GUITAR_CHORDS_IN_CHORD_LIBRARY: Array<Chord> =
+  ALL_GUITAR_ROOT_SUFFIX_IN_CHORD_LIBRARY.map(m => Chord.lookup(m))
+  
+  
+console.warn('Unknown suffixes', UNKNOWN_GUITAR_SUFFIXES)

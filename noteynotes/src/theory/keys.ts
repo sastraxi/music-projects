@@ -1,8 +1,7 @@
 import { NoteWithOctave, PcSet, Note as TonalNote } from "tonal"
-import { ALL_GUITAR_CHORDS, getGuitarNotes } from "../instrument/guitar"
+import { ALL_GUITAR_CHORDS_IN_CHORD_LIBRARY, ALL_GUITAR_ROOT_SUFFIX_IN_CHORD_LIBRARY, getGuitarNotes } from "../instrument/guitar"
 import { Chord } from "./chords"
-import { DEFAULT_RESTRICTED_MODES, KeyName, MAJOR_MODES_BY_DEGREE, MAJOR_SCALES, Note, RootAndSuffix, combineNote, explodeNote, keynameToNotes, noteIdentity, noteNameEquals, noteToMidi } from "./common"
-import { getTriadNotes } from "./triads"
+import { ChordNotFoundError, DEFAULT_RESTRICTED_MODES, KeyName, MAJOR_MODES_BY_DEGREE, MAJOR_SCALES, Note, RootAndSuffix, combineNote, explodeNote, keynameToNotes, noteIdentity, noteNameEquals, noteToMidi } from "./common"
 
 
 export type ChordSearchParams = {
@@ -39,33 +38,42 @@ export const chordsMatchingCondition = ({
   const inScale = PcSet.isNoteIncludedIn(scaleNotes)
 
   const matchingChords: Array<Chord> = []
-  for (const guitarChord of ALL_GUITAR_CHORDS) {
-    const notes = getGuitarNotes(guitarChord, 0)  // XXX: is first chord most indicative?
-    const triad = getTriadNotes(guitarChord)
-    if (!triad || !triad.every(inScale)) {
-      // can't fit this note into any major scale (or our specific one)
-      continue
-    }
+  for (const { root, suffix } of ALL_GUITAR_ROOT_SUFFIX_IN_CHORD_LIBRARY) {
+    try {
+      const chord = Chord.lookup({ root, suffix })
+      const notes = getGuitarNotes({ root, suffix }, 0)  // XXX: is first chord most indicative?
+      const triad = chord.getBasicNotes()
+      if (!triad || !triad.every(inScale)) {
+        // can't fit this note into any major scale (or our specific one)
+        continue
+      }
 
-    // skip chords that don't have the root and bass note in scale
-    // TODO: should we look at all notes below root?
-    const bassNote = notes[0]
-    const rootNote = notes.find(n => noteNameEquals(n, guitarChord.root))
-    if (!rootNote) {
-      // this indicates an incorrect chord in guitar.json
-      console.error(`Incorrect chord in guitar.json: ${guitarChord.root} ${guitarChord.suffix}, but ${notes}`)
-      continue
-    }
-    if (!inScale(bassNote)) {
-      continue
-    }
+      // skip chords that don't have the root and bass note in scale
+      // TODO: should we look at all notes below root?
+      const bassNote = notes[0]
+      const rootNote = notes.find(n => noteNameEquals(n, root))
+      if (!rootNote) {
+        // this indicates an incorrect chord in guitar.json
+        console.error(`Incorrect chord in guitar.json: ${root} ${suffix}, but ${notes}`)
+        continue
+      }
+      if (!inScale(bassNote)) {
+        continue
+      }
 
-    // how many accidentals overall in the chord?
-    const chord = Chord.lookup(guitarChord)
-    chord.accidentals = notes
-      .filter(note => !inScale(note))
-      .map(note => semitoneDistance(rootNote, note))
-    matchingChords.push(chord)
+      // how many accidentals overall in the chord?
+      matchingChords.push(
+        chord.withAccidentals(
+          notes
+            .filter(note => !inScale(note))
+            .map(note => semitoneDistance(rootNote, note))
+        ))
+    } catch (error) {
+      if (!(error instanceof ChordNotFoundError)) {
+        // we'll only swallow ChordNotFoundErrors
+        throw error
+      }
+    }
   }
   return matchingChords
 }
@@ -93,7 +101,7 @@ export const keysIncludingChord = (
   // key selection around (and is in fact why this code exists...)		
   // if we don't have a triad, fall back to the notes
   const consideredNotes = onlyBaseTriad
-    ? (getTriadNotes(chord) ?? notes)
+    ? (Chord.lookup(chord).getBasicNotes() ?? notes)  // TODO: pass in Chord instead
     : notes
 
   // find all keys that contain all the given scale notes,

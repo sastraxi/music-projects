@@ -10,11 +10,13 @@ import { usePromptChoices, useSetPromptChoice } from '~/state/app'
 import { memoize, randomChoice, withReplacement } from '~/util'
 
 import {
-  ALL_GUITAR_CHORDS,
+  ALL_GUITAR_CHORDS_IN_CHORD_LIBRARY,
+  ALL_GUITAR_ROOT_SUFFIX_IN_CHORD_LIBRARY,
   Balanced,
   CHORD_LIBRARY,
   Chord,
   FLAVOUR_CHOICES, Flavour,
+  GUITAR_CHORDS_IN_MAJOR_KEYS,
   KEY_NAMES_BASED_ON_MAJOR,
   chordEquals,
   chordsMatchingCondition,
@@ -31,27 +33,6 @@ import {
 
 import MIDISounds, { MIDISoundPlayer } from 'midi-sounds-react'
 
-
-///////////////////////////
-
-const SUFFIXES_WE_CANT_MAKE_KEYS_FROM = ['aug', 'aug7', 'aug9']
-
-const GUITAR_CHORDS_IN_MAJOR_KEYS =
-  ALL_GUITAR_CHORDS
-    .filter(x => !SUFFIXES_WE_CANT_MAKE_KEYS_FROM.includes(x.suffix))
-
-const ALL_GUITAR_CHORDS_WITH_BLANK_ACCIDENTALS: Array<Chord> =
-  GUITAR_CHORDS_IN_MAJOR_KEYS
-    .filter(chordType => chordType.suffix in CHORD_LIBRARY)
-    .map(m => Chord.lookup(m))
-
-const UNKNOWN_SUFFIXES = unique(
-  GUITAR_CHORDS_IN_MAJOR_KEYS
-    .map(chordType => chordType.suffix)
-    .filter(suffix => !(suffix in CHORD_LIBRARY))
-)
-
-console.warn('Unknown suffixes', UNKNOWN_SUFFIXES)
 
 ///////////////////////////
 
@@ -144,7 +125,7 @@ const generateChordChoices = memoize((
 
   const scaleNotes = (keyName && !sameBaseTriadAs) ? keynameToNotes(keyName) : undefined
   let candidateChords = !scaleNotes
-    ? ALL_GUITAR_CHORDS_WITH_BLANK_ACCIDENTALS
+    ? ALL_GUITAR_CHORDS_IN_CHORD_LIBRARY
     : chordsMatchingCondition({ scaleNotes })
 
   if (sameBaseTriadAs) {
@@ -439,8 +420,9 @@ const ChordsPrompt: React.FunctionComponent = () => {
               key={chordIndex}
               keyName={keyName}
               selectableChords={chordIndex === 0
-                ? (keyLocked ? inKeyChords : GUITAR_CHORDS_IN_MAJOR_KEYS)
-                : (chords[chordIndex].sourceSet === '🔑' ? inKeyChords : ALL_GUITAR_CHORDS)
+                // FIXME: over-restrictive; need ALL_GUITAR_ROOT_SUFFIX_IN_MAJOR_SCALE_IN_CHORD_LIBRARY for latter
+                ? (keyLocked ? inKeyChords : ALL_GUITAR_ROOT_SUFFIX_IN_CHORD_LIBRARY)
+                : (chords[chordIndex].sourceSet === '🔑' ? inKeyChords : ALL_GUITAR_ROOT_SUFFIX_IN_CHORD_LIBRARY)
               }
               choice={chord}
               sourceSetOptions={sourceSetOptions}

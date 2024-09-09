@@ -15,7 +15,7 @@ const SplashScreen = (
                 Jam with your friends.
             </p>
             <div className="buttons">
-                <IconButton type="github" size="24px" href="https://github.com/sastraxi/jam-shuffle" target="_blank" title="View project on Github" />
+                <IconButton type="github" size="24px" href="https://github.com/sastraxi/music-projects/" target="_blank" title="View project on Github" />
                 <IconButton type="go" size="24px" onClick={onDismiss} title="Get started" />
             </div>
         </div>

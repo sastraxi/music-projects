@@ -55,7 +55,7 @@ const Settings = () => {
     }
 
     return (
-        <>
+        <div className="settings">
             <MenuContainer isOpen={isActive}>
                 <h2>Shuffle prompts</h2>
                 <p>Choose which built-in prompts can show up when you shuffle.</p>
@@ -76,10 +76,11 @@ const Settings = () => {
             <div className="settingsContainer">
                 {data && session && <span className="user">{data.display_name}</span>}
                 {session && <IconButton type="logout" onClick={() => { signout(); setSession(null) }} />}
-                <IconButton type="github" href="https://github.com/sastraxi/jam-shuffle" target="_blank" title="View project on Github" />
-                <IconButton type={menuIcon} onClick={onClickMenuButton} />
+                <IconButton type="github" href="https://github.com/sastraxi/music-projects" target="_blank" title="View project on Github" />
+                {/* FIXME: finish settings + figure out why auth CSS is not working */}
+                {/* <IconButton type={menuIcon} onClick={onClickMenuButton} /> */}
             </div>
-        </>
+        </div>
     )
 }
 

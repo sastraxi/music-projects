@@ -1,7 +1,7 @@
 import { Interval, Progression, RomanNumeral, transpose } from "tonal"
-import { ALL_GUITAR_CHORDS } from "../instrument/guitar"
-import { ChordName, ChordSuffix, ENHARMONIC_DISPLAY_FOR_KEYNAME, Note, RootAndSuffix, displayAccidentals, explodeChord } from "./common"
+import { ChordName, ENHARMONIC_DISPLAY_FOR_KEYNAME, Note, RootAndSuffix, displayAccidentals, explodeChord } from "./common"
 import { cumulative, memoize } from "../util"
+import { CHORD_LIBRARY } from "./chords"
 
 /**
  * Number of semitones in the two nonoverlapping sub-intervals that make up a triad.
@@ -52,53 +52,6 @@ export const buildTriad = (rootNote: Note, triad: Triad): Note[] => ([
   ...cumulative(triad).map(semitones => transpose(rootNote, Interval.fromSemitones(semitones))),
 ])
 
-const ALL_CHORD_SUFFIXES: Set<ChordSuffix> = new Set()
-{
-  ALL_GUITAR_CHORDS.forEach((value) => {
-    ALL_CHORD_SUFFIXES.add(value.suffix)
-  })
-}
-
-const SUFFIX_TO_TRIAD: Record<ChordSuffix, Triad> = {}
-{
-  let remainingSuffixes = [...ALL_CHORD_SUFFIXES]
-  const mark = (triad: Triad, pred: (x: string) => boolean) => {
-    remainingSuffixes.filter(pred).forEach(x => SUFFIX_TO_TRIAD[x] = triad)
-    remainingSuffixes = remainingSuffixes.filter(x => !pred(x))
-  }
-
-  mark(DIMINISHED_TRIAD, x => x.startsWith('dim'))
-  mark(MAJOR_TRIAD, x => x.startsWith('maj'))
-  mark(MINOR_TRIAD, x => x.startsWith('min'))
-  mark(MINOR_TRIAD, x => x.startsWith('m/'))
-  mark(MINOR_TRIAD, x => x.startsWith('mmaj'))
-  mark(SUS2_TRIAD, x => x.includes('sus2'))
-  mark(SUS4_TRIAD, x => x.includes('sus4'))
-  mark(MAJOR_TRIAD, x => x.startsWith('/'))
-  mark(MAJOR_TRIAD, x => x === '69')
-  mark(MINOR_TRIAD, x => x.startsWith('m'))
-  mark(POWER_TRIAD, x => x === '5')
-  mark(MAJOR_TRIAD, x => x === 'add9')
-  mark(MAJOR_DIM_TRIAD, x => x.includes('b5'))
-  mark(AUGMENTED_TRIAD, x => x.includes('aug'))
-  mark(MAJOR_TRIAD, x => !isNaN(+x.charAt(0)))
-  mark(MAJOR_DIM_TRIAD, x => x === 'alt')  // jazz parlance?
-
-  // that does all the suffixes
-  // TODO: cache this list?
-}
-
-/**
- * TODO: remove this and instead use the methods in chord
- * @param chord 
- * @returns undefined if we don't have 
- */
-export const getTriadNotes = (chord: RootAndSuffix): Note[] | undefined => {
-  const triad = SUFFIX_TO_TRIAD[chord.suffix]
-  if (!triad) return undefined
-  return buildTriad(chord.root, triad)
-}
-
 const NUMERAL_MAP: Record<string, string> = {
   "I": "Ⅰ",
   "II": "Ⅱ",
@@ -125,13 +78,14 @@ export const getRomanNumeral = memoize((keyName: string, chord: ChordName | Root
 
   // FIXME: I still saw one sharp somewhere I didn't expect. Maybe a bad chord?
 
-  const triad = SUFFIX_TO_TRIAD[suffix]
+
+  const archetype = CHORD_LIBRARY[suffix]
   let symbol = ''
-  if (DIMINISHED_TRIADS.includes(triad)) {
+  if (archetype.triadName == 'dim') {
     symbol = '°'
-  } else if (AUGMENTED_TRIAD === triad) {
+  } else if (archetype.triadName == 'aug') {
     symbol = '⁺'
-  } else if (suffix.includes('sus')) {
+  } else if (archetype.triadName?.startsWith('sus')) {
     // this is crazy!
     symbol = 'ₛᵤₛ'
   }
