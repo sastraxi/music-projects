@@ -1,5 +1,4 @@
 import React, { useState, lazy } from 'react'
-
 import './App.css'
 import CategorySelector from './CategorySelector'
 import Settings from '~/settings/Settings';

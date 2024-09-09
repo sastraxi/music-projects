@@ -5,7 +5,6 @@ import {
   Scripts,
   ScrollRestoration,
 } from "@remix-run/react";
-import "./tailwind.css";
 import "./index.css";
 
 import {
@@ -15,26 +14,23 @@ import {
 
 const queryClient = new QueryClient();
 
-export function Layout({ children }: { children: React.ReactNode }) {
+// FIXME: why doesn't this work when imported from App.tsx?
+import './core/App.css'
+
+export function HydrateFallback() {
   return (
-    <html lang="en">
-      <head>
-        <meta charSet="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <Meta />
-        <Links />
-      </head>
-      <body>
-        <QueryClientProvider client={queryClient}>
-          {children}
-        </QueryClientProvider>
-        <ScrollRestoration />
-        <Scripts />
-      </body>
-    </html>
+    <>
+      <p>Loading...</p>
+      <Scripts />
+    </>
   );
 }
 
-export default function App() {
-  return <Outlet />;
+export default function Component() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <Outlet />
+      <Scripts />
+    </QueryClientProvider>
+  );
 }
