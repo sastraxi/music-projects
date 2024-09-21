@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import listenForMidi from "./listen-for-midi"
 import { Note, noteFromMidi, noteToMidi } from "noteynotes"
 
-const DEFAULT_IDLE_MS = 4000
+const DEFAULT_IDLE_MS = 7500
 const DEFAULT_FINALIZE_THRESHOLD_MS = 500
 
 const EMPTY_SET = new Set<Note>()
@@ -49,7 +49,7 @@ const KeyboardInput = (_props: KeyboardInputProps) => {
     finalizeTimeout: null,
   })
 
-  const debounceIdle = () => {
+  const scheduleIdle = () => {
     if (state.current.idleTimeout) {
       window.clearTimeout(state.current.idleTimeout)
     }
@@ -80,7 +80,7 @@ const KeyboardInput = (_props: KeyboardInputProps) => {
   /**
    * Schedules finalization to happen in the near future.
    */
-  const debounceFinalize = () => {
+  const scheduleFinalize = () => {
     if (state.current.finalizeTimeout) {
       window.clearTimeout(state.current.finalizeTimeout)
       state.current.finalizeTimeout = null
@@ -93,7 +93,7 @@ const KeyboardInput = (_props: KeyboardInputProps) => {
    */
   const tryFinalize = () => {
     if (state.current.noteSet.size >= props.current.minNotes) {
-      debounceFinalize()
+      scheduleFinalize()
     }
   }
 
@@ -109,16 +109,23 @@ const KeyboardInput = (_props: KeyboardInputProps) => {
         state.current.noteSet = new Set(state.current.noteSet).add(note)
         props.current.onNote?.(note)
         tryFinalize()
+        scheduleIdle()
       }
     } else if (command === 176 && midiNote === 64) {
       // sustain pedal
       // we won't finalize as long as the sustain is being held
       state.current.isSustain = velocity > 0
       tryFinalize()
+      scheduleIdle()
     }
-    debounceIdle()
   }
+
   useEffect(() => listenForMidi(midiCallback), [])
+  useEffect(scheduleIdle, [])
+  useEffect(() => () => {
+    if (state.current.finalizeTimeout) window.clearTimeout(state.current.finalizeTimeout)
+    if (state.current.idleTimeout) window.clearTimeout(state.current.idleTimeout)
+  }, [])
 
   return (<></>)
 }

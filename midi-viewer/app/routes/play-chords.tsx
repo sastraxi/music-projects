@@ -45,8 +45,9 @@ export default function PlayChords() {
           onTap={numTaps => console.log(`Tapped ${numTaps} time(s)`)}
         />
         <KeyboardInput
-          onFinalize={notes => console.log('notes', notes)}
           minNotes={3}
+          onFinalize={notes => console.log('notes', notes)}
+          onIdle={() => console.log("Idle!")}
         />
       </div>
 
