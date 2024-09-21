@@ -10,68 +10,76 @@ export type PedalDetectorProps = {
   onHoldStateChanged?: (isHeld: boolean) => void
 }
 
-const PedalDetector = ({
-  tapThresholdMs = DEFAULT_TAP_THRESHOLD_MS,
-  commitThresholdMs = 2 * DEFAULT_TAP_THRESHOLD_MS,
-  onTap,
-  onHoldStateChanged,
-}: PedalDetectorProps) => {
-  const [pedalPressed, setPedalPressed] = useState(false)
-  const [currentTimeout, setCurrentTimeout] = useState<number | null>(null)
-  const numTaps = useRef(0)  // ref so we can get latest values in callbacks
+type PedalDetectorState = {
+  pedalPressed: boolean,
+  timeout: number | null
+  numTaps: number
+}
+
+const PedalDetector = (_props: PedalDetectorProps) => {
+  const props = useRef<PedalDetectorProps>({
+    tapThresholdMs: DEFAULT_TAP_THRESHOLD_MS,
+    commitThresholdMs: 1.5 * DEFAULT_TAP_THRESHOLD_MS,
+  })
+  props.current = { ...props.current, ..._props }
+  const state = useRef<PedalDetectorState>({
+    pedalPressed: false,
+    timeout: null,
+    numTaps: 0,
+  })
 
   /**
    * Called when the sustain pedal has been held longer than tapThresholdMs.
    */
-  const tapTimeoutReached = useCallback(() => {
-    if (numTaps.current > 0) {
+  const tapTimeoutReached = () => {
+    if (state.current.numTaps > 0) {
       // N.B. if valid taps are followed quickly by a hold, we ignore the taps
-      numTaps.current = 0
+      state.current.numTaps = 0
     }
-    onHoldStateChanged?.(true)
-  }, [numTaps, onHoldStateChanged])
+    props.current.onHoldStateChanged?.(true)
+  }
 
   /**
    * Called when the sustain pedal has been released longer than commitThresholdMs
    */
-  const commitTimeoutReached = useCallback(() => {
-    if (numTaps.current > 0) {
+  const commitTimeoutReached = () => {
+    if (state.current.numTaps > 0) {
       // we can have no more taps; notify listeners via callback
-      onTap?.(numTaps.current)
-      numTaps.current = 0
+      props.current.onTap?.(state.current.numTaps)
+      state.current.numTaps = 0
     }
-  }, [numTaps, onTap])
+  }
 
   const midiCallback = (msg: MIDIMessageEvent) => {
     const [command, midiNote, velocity] = msg.data!
     if (command === 176 && midiNote === 64) {
-      if (currentTimeout) {
-        window.clearTimeout(currentTimeout)
+      if (state.current.timeout) {
+        window.clearTimeout(state.current.timeout)
       }
 
       const isNowPressed = velocity > 0
-      if (!pedalPressed && isNowPressed) {
+      if (!state.current.pedalPressed && isNowPressed) {
         // activation edge
-        setPedalPressed(true)
-        numTaps.current += 1
-        setCurrentTimeout(window.setTimeout(tapTimeoutReached, tapThresholdMs))
+        state.current.pedalPressed = true
+        state.current.numTaps += 1
+        state.current.timeout = window.setTimeout(tapTimeoutReached, props.current.tapThresholdMs)
 
-      } else if (pedalPressed && !isNowPressed) {
+      } else if (state.current.pedalPressed && !isNowPressed) {
         // deactivation edge
-        setPedalPressed(false)
-        if (numTaps.current > 0) {
+        state.current.pedalPressed = false
+        if (state.current.numTaps > 0) {
           // user is still plausibly tapping; we count taps on activation edge
           // so for now we do nothing
         } else {
           // user has already passed the tap threshold; treat as end of hold
-          onHoldStateChanged?.(false)
+          props.current.onHoldStateChanged?.(false)
         }
-        setCurrentTimeout(window.setTimeout(commitTimeoutReached, commitThresholdMs))
+        state.current.timeout = window.setTimeout(commitTimeoutReached, props.current.commitThresholdMs)
       }
     }
   }
 
-  useEffect(() => listenForMidi(midiCallback), [midiCallback])
+  useEffect(() => listenForMidi(midiCallback), [])
 
   return (<></>)
 }

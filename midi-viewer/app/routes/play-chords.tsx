@@ -44,10 +44,10 @@ export default function PlayChords() {
           onHoldStateChanged={holdState => console.log(`Pedal is now ${holdState ? 'held' : 'released'}`)}
           onTap={numTaps => console.log(`Tapped ${numTaps} time(s)`)}
         />
-        {/* <KeyboardInput
+        <KeyboardInput
           onFinalize={notes => console.log('notes', notes)}
           minNotes={3}
-        /> */}
+        />
       </div>
 
       <div className="mt-4">
