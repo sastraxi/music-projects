@@ -169,7 +169,11 @@ export class Chord {
   /**
    * Look up a chord based on its name.
    */
-  static lookup(name: ChordName | RootAndSuffix): Chord {
+  static lookup(name: Chord | ChordName | RootAndSuffix): Chord {
+    if (name instanceof Chord) {
+      return name
+    }
+
     const { root, suffix } = (typeof name === 'string' ? explodeChord(name) : name);
 
     const [baseSuffix, bassNote] = suffix.split('/')

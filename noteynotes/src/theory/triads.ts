@@ -1,7 +1,7 @@
 import { Interval, Progression, RomanNumeral, transpose } from "tonal"
 import { ChordName, ENHARMONIC_DISPLAY_FOR_KEYNAME, Note, RootAndSuffix, displayAccidentals, explodeChord } from "./common"
 import { cumulative, memoize } from "../util"
-import { CHORD_LIBRARY } from "./chords"
+import { Chord, CHORD_LIBRARY } from "./chords"
 
 /**
  * Number of semitones in the two nonoverlapping sub-intervals that make up a triad.
@@ -69,17 +69,17 @@ const NUMERAL_MAP: Record<string, string> = {
   "vii": "ⅶ"
 }
 
-export const getRomanNumeral = memoize((keyName: string, chord: ChordName | RootAndSuffix): string => {
-  const Chord = (typeof chord === 'string' ? explodeChord(chord) : chord)
-  const { suffix } = Chord
-  const root = ENHARMONIC_DISPLAY_FOR_KEYNAME[keyName][Chord.root]
+export const getRomanNumeral = memoize((keyName: string, chord: Chord | ChordName | RootAndSuffix): string => {
+  const chordObject = Chord.lookup(chord)
+  const root = ENHARMONIC_DISPLAY_FOR_KEYNAME[keyName][chordObject.root]
+  const archetype = chordObject.archetype
+  const suffix = chordObject.names[0]
+  console.log(chordObject.names)
 
   const keyTonic = keyName.split(' ')[0]  // XXX: not great Bob
 
   // FIXME: I still saw one sharp somewhere I didn't expect. Maybe a bad chord?
 
-
-  const archetype = CHORD_LIBRARY[suffix]
   let symbol = ''
   if (archetype.triadName == 'dim') {
     symbol = '°'
