@@ -1,58 +1,18 @@
-# Welcome to Remix + Vite!
+# midi-viewer
 
-📖 See the [Remix docs](https://remix.run/docs) and the [Remix Vite docs](https://remix.run/docs/en/main/future/vite) for details on supported features.
+This app shows you what you're playing on a MIDI keyboard.
 
-## Typegen
+## Ideas
 
-Generate types for your Cloudflare bindings in `wrangler.toml`:
+- "long context" --> guessed key based on scale + tonal centre? note movement / clustering?
+- show function of recent chord in key context
+- checkmark on UI when chords is locked in
+- notes played right before the tap should be considered part of the next batch of notes
+- double-tapping drops the pending chord without committing it
+- both bass note and extensions should be dynamic over the chord lifetime
+- need to auto-switch extensions based on a _dissonance threshold_
+- record their history (per base chord) and show them on the UI (MIDI)
 
-```sh
-npm run typegen
-```
+## Making it a game
 
-You will need to rerun typegen whenever you make changes to `wrangler.toml`.
-
-## Development
-
-Run the Vite dev server:
-
-```sh
-npm run dev
-```
-
-To run Wrangler:
-
-```sh
-npm run build
-npm run start
-```
-
-## Deployment
-
-> [!WARNING]  
-> Cloudflare does _not_ use `wrangler.toml` to configure deployment bindings.
-> You **MUST** [configure deployment bindings manually in the Cloudflare dashboard][bindings].
-
-First, build your app for production:
-
-```sh
-npm run build
-```
-
-Then, deploy your app to Cloudflare Pages:
-
-```sh
-npm run deploy
-```
-
-[bindings]: https://developers.cloudflare.com/pages/functions/bindings/
-
-
-// TODO: "long context" --> guessed key based on scale + tonal centre? note movement / clustering?
-// TODO: show function of recent chord in key context
-// TODO: checkmark on UI when chords is locked in
-// TODO: notes played right before the tap should be considered part of the next batch of notes
-// TODO: double-tapping drops the pending chord without committing it
-// TODO: both bass note and extensions should be dynamic over the chord lifetime
-// TODO: need to auto-switch extensions based on a _dissonance threshold_
-// TODO: record their history (per base chord) and show them on the UI (MIDI)
+- https://github.com/open-spaced-repetition/fsrs4anki/blob/a9bf76eb05ac946e4b4dab5700d42d384dd82101/README.md

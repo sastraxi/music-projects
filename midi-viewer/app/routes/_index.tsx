@@ -44,7 +44,7 @@ export default function Index() {
   }
 
   const midiCallback = useCallback((msg: MIDIMessageEvent) => {
-    const [command, midiNote, velocity] = msg.data
+    const [command, midiNote, velocity] = msg.data!
     
     // try to follow the midi clock
     // if (timeOffset === undefined) {
