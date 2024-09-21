@@ -5,6 +5,7 @@ import { Chord, detectChords, detectKey, noteForDisplay, noteFromMidi, noteToMid
 import { useCallback, useEffect, useState } from "react";
 import DetectedKey from "~/components/DetectedKey";
 import { listenForMidi } from "~/midi";
+import KeyboardInput from "~/midi/KeyboardInput";
 import PedalDetector from "~/midi/PedalDetector";
 import { useChords } from "~/state/chords";
 import { useKey } from "~/state/key";
@@ -43,6 +44,10 @@ export default function PlayChords() {
           onHoldStateChanged={holdState => console.log(`Pedal is now ${holdState ? 'held' : 'released'}`)}
           onTap={numTaps => console.log(`Tapped ${numTaps} time(s)`)}
         />
+        {/* <KeyboardInput
+          onFinalize={notes => console.log('notes', notes)}
+          minNotes={3}
+        /> */}
       </div>
 
       <div className="mt-4">

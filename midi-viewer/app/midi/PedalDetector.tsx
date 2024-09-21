@@ -28,9 +28,7 @@ const PedalDetector = ({
       // N.B. if valid taps are followed quickly by a hold, we ignore the taps
       numTaps.current = 0
     }
-    if (onHoldStateChanged) {
-      onHoldStateChanged(true)
-    }
+    onHoldStateChanged?.(true)
   }, [numTaps, onHoldStateChanged])
 
   /**
@@ -39,9 +37,7 @@ const PedalDetector = ({
   const commitTimeoutReached = useCallback(() => {
     if (numTaps.current > 0) {
       // we can have no more taps; notify listeners via callback
-      if (onTap) {
-        onTap(numTaps.current)
-      }
+      onTap?.(numTaps.current)
       numTaps.current = 0
     }
   }, [numTaps, onTap])
@@ -66,9 +62,9 @@ const PedalDetector = ({
         if (numTaps.current > 0) {
           // user is still plausibly tapping; we count taps on activation edge
           // so for now we do nothing
-        } else if (onHoldStateChanged) {
+        } else {
           // user has already passed the tap threshold; treat as end of hold
-          onHoldStateChanged(false)
+          onHoldStateChanged?.(false)
         }
         setCurrentTimeout(window.setTimeout(commitTimeoutReached, commitThresholdMs))
       }
