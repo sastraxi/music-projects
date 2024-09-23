@@ -146,10 +146,13 @@ MAJOR_KEY_NAMES.forEach((keyName) => {
   })
 })
 
+// FIXME: should this set have the weird non-existent notes??
 export const CONSIDERED_NOTE_NAMES = [
-  'Ab', 'A', 'A#', 'Bb', 'B', 'B#', 'Cb', 'C', 'C#',
-  'Db', 'D', 'D#', 'Eb', 'E', 'E#', 'Fb', 'F', 'F#',
-  'Gb', 'G', 'G#',
+  'Ab', 'A', 'A#', 'Bb', 'B',
+  // 'B#', 'Cb',
+  'C', 'C#', 'Db', 'D', 'D#', 'Eb', 'E',
+  // 'E#', 'Fb',
+  'F', 'F#', 'Gb', 'G', 'G#',
 ]
 
 /**

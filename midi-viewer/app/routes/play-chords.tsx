@@ -14,12 +14,6 @@ enum GameState {
   INCORRECT = 2,
 }
 
-const CHORDS = [
-  Chord.lookup("C"),
-  Chord.lookup("Dbm"),
-  Chord.lookup("Fmmaj7"),
-]
-
 /**
  * Returns the lowest note that is the root of the given chord,
  * or undefined if no such note was played (i.e. in the note list).
@@ -35,7 +29,7 @@ export default function PlayChords() {
     []
   )
 
-  const allowAccidentals = true
+  const allowExtensions = true
   const [pedal, setPedal] = useState<boolean>(false)
   const [noteList, setNoteList] = useState<Note[]>([])
   const [gameState, setGameState] = useState<GameState>(GameState.GUESSING)
@@ -45,9 +39,11 @@ export default function PlayChords() {
     const midiNote = noteToMidi(note)
     const midiRootNote = rootNote !== undefined ? noteToMidi(rootNote) : undefined
 
-    if (allowAccidentals && midiRootNote && midiNote > midiRootNote + OCTAVE_SIZE) {
-      // we can treat anything more than an octave above the root note as an accidental
+    if (allowExtensions && midiRootNote && midiNote > midiRootNote + OCTAVE_SIZE) {
+      // we can treat anything more than an octave above the root note as
+      // a creative decision by the user (an extension)
       // these notes are neither correct nor incorrect
+      return undefined
     }
 
     if (midiRootNote && midiNote < midiRootNote) {
@@ -68,7 +64,7 @@ export default function PlayChords() {
   const submitAnswer = (notes: Note[]) => {
     setNoteList(notes)
     const rootNote = getRootFromPerformance(noteList, chord)
-    const isCorrect = notes.every(note => isNoteCorrect(note, rootNote))
+    const isCorrect = notes.every(note => isNoteCorrect(note, rootNote) !== false)
     setGameState(isCorrect ? GameState.CORRECT : GameState.INCORRECT)
   }
 
@@ -101,7 +97,7 @@ export default function PlayChords() {
 
       <div className="grid gap-4 grid-cols-2 w-96 min-h-24 my-8 mx-auto items-center">
         <div className="align-middle">
-          <h2 className="text-5xl border-b-3 border-dotted inline border-blue-400">
+          <h2 className="text-6xl border-b-3 border-dotted inline border-blue-400">
             {chord.forDisplay()}
           </h2>
           <p className="mt-4 font-extralight">Play this chord.</p>
@@ -130,7 +126,7 @@ export default function PlayChords() {
         <KeyboardInput
           minNotes={3}
           onFinalize={submitAnswer}
-          onNoteAdded={(n, nl) => setNoteList(nl)}
+          onNoteAdded={(_, nl) => setNoteList(nl)}
           onIdle={() => console.log("Idle!")}
         />
       )}
