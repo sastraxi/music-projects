@@ -318,6 +318,21 @@ export const noteFromIdentity = (noteIdentity: number): Note =>
   stripOctave(noteFromMidi(noteIdentity))
 
 /**
+ * Returns the highest note of the given identity that is lower
+ * than a benchmark note. 
+ */
+export const noteBelow = (note: Note, mustBeBelow: Note) => {
+  // FIXME: why can't I think of a better way of implementing this...
+  const { octave } = explodeNote(mustBeBelow)
+  if (!octave) {
+    throw new Error(`Cannot place note below an octaveless note: ${mustBeBelow}`)
+  }
+  const candidate = withOctave(stripOctave(note), octave)
+  if (noteToMidi(candidate) < noteToMidi(mustBeBelow)) return candidate
+  return withOctave(candidate, octave - 1)
+}
+
+/**
  * e.g. C major, F lydian
  */
 export type KeyName = string

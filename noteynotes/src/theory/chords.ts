@@ -216,13 +216,14 @@ export class Chord {
    *               relative to each other
    */
   getBasicNotes(
-    octave?: number
+    octave?: number,
+    includeBass = true,
   ): Note[] {
     const rootNote = octave ? `${this.root}${octave}` : this.root
     // we need unique here because of power chords + if a bass note is identical to the root note
     const intervals = unique([
       // the bass note
-      ...(this.bass ? [
+      ...((includeBass && this.bass) ? [
         -interval(distance(this.bass, this.root)).semitones!
       ] : []),
 
@@ -246,19 +247,11 @@ export class Chord {
    */
   containsNote(
     note: Note,
-    matchBass = false,
+    includeBass = false,
   ): boolean {
-    const id = noteIdentity(note)
-    if (matchBass && this.bass) {
-      return noteIdentity(this.bass) === id
-    }
-    return unique([
-      0,
-      ...cumulative(this.baseTriad), 
-      ...(this.extensions ?? []),
-    ]).map(semitones =>
-      transpose(this.root, Interval.fromSemitones(semitones))
-    ).map(noteIdentity).includes(id)
+    return this.getBasicNotes(undefined, includeBass)
+      .map(noteIdentity)
+      .includes(noteIdentity(note))
   }
 
   /**

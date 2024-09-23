@@ -252,10 +252,10 @@ const Piano = ({
       let noteColour = isBlack ? "#121212" : "#1f1f1f"
       if (midiCorrectSet.has(key)) {
         noteColour = "#82f496"
-      } else if (midiIncorrectSet.has(key)) {
-        noteColour = "#a42236"
       } else if (midiGoalSet.has(key)) {
         noteColour = "#eae572"
+      } else if (midiIncorrectSet.has(key)) {
+        noteColour = "#a42236"
       } else if (midiHighlightedSet.has(key)) {
         noteColour = isBlack ? "#c3d3d3" : "#fbfbfb"
       } 
