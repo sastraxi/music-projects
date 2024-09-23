@@ -25,6 +25,7 @@
     "isbot": "^4.4.0",
     "miniflare": "^3.20231030.4",
     "noteynotes": "workspace:*",
+    "random-seedable": "^1.0.8",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "zustand": "^4.3.8"

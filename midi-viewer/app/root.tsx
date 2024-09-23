@@ -8,6 +8,7 @@ import {
 import stylesheet from '~/tailwind.css?url'
 import { LinksFunction } from "@remix-run/cloudflare"
 import { NextUIProvider } from "@nextui-org/system"
+import RandomProvider from "./util/RandomProvider"
 
 export const links: LinksFunction = () => [
   { rel: "stylesheet", href: stylesheet },
@@ -24,9 +25,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
       </head>
       <body>        
         <main className="min-h-screen dark text-foreground bg-background">
-          <NextUIProvider>
-            {children}
-          </NextUIProvider>
+          <RandomProvider>
+            <NextUIProvider>
+              {children}
+            </NextUIProvider>
+          </RandomProvider>
         </main>
         <ScrollRestoration />
         <Scripts />

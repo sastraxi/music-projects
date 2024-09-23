@@ -252,6 +252,9 @@ importers:
       noteynotes:
         specifier: workspace:*
         version: link:../noteynotes
+      random-seedable:
+        specifier: ^1.0.8
+        version: 1.0.8
       react:
         specifier: ^18.2.0
         version: 18.2.0
@@ -322,6 +325,9 @@ importers:
       fast-json-stable-stringify:
         specifier: ^2.1.0
         version: 2.1.0
+      random-seedable:
+        specifier: ^1.0.8
+        version: 1.0.8
       react:
         specifier: '*'
         version: 18.2.0
@@ -11223,6 +11229,10 @@ packages:
 
   /queue-microtask@1.2.3:
     resolution: {integrity: sha512-NuaNSa6flKT5JaSYQzJok04JzTL1CA6aGhv5rfLW3PgqA+M2ChpZQnAC8h8i4ZFkBS8X5RqkDBHA7r4hej3K9A==}
+
+  /random-seedable@1.0.8:
+    resolution: {integrity: sha512-f6gzvNhAnZBht1Prn0e/tpukUNhkANntFF42uIdWDPriyEATYaRpyH8A9bYaGecUB3AL+dXeYtBUggy18fe3rw==}
+    dev: false
 
   /range-parser@1.2.1:
     resolution: {integrity: sha512-Hrgsx+orqoygnmhFbKaHE6c296J+HTAQXoxEF6gNupROmmGJRoyzfG3ccAveqCBrwr/2yxQ5BVd/GTl5agOwSg==}

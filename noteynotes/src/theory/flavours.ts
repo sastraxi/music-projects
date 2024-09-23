@@ -1,6 +1,7 @@
 import { upperBound } from "../util"
 import { isOverChord } from "../instrument/guitar"
 import { Chord, ChordSuffix } from ".."
+import PRNG from "random-seedable/@types/PRNG"
 
 export type Flavour = {
   name: string
@@ -57,7 +58,7 @@ export const Balanced: Flavour = {
       + (isOverChord(chord) ? 8 : 0)
   },
   suffixes: {
-   blacklist: new Set(['5', 'sus2sus4', 'aug', 'aug9', 'maj7b5', 'maj7#5', 'mmaj7b5', '9#11', 'm7b5', 'alt']),
+    blacklist: new Set(['5', 'sus2sus4', 'aug', 'aug9', 'maj7b5', 'maj7#5', 'mmaj7b5', '9#11', 'm7b5', 'alt']),
   }
 }
 
@@ -92,6 +93,7 @@ export const FLAVOUR_CHOICES: Readonly<Array<Flavour>> = [
 export const getMakeFlavourChoice = (
   flavour: Flavour,
   chords: Array<Chord>,
+  randomProvider?: PRNG
 ) => {
   const weightingFunc = flavour.chordWeightingFunc ?? (() => 1)
 
@@ -122,7 +124,8 @@ export const getMakeFlavourChoice = (
   return {
     candidateChords: candidates,
     chooseChord: () => {
-      const needle = Math.random() * max
+      const randomFloat = randomProvider ? randomProvider.float() : Math.random()
+      const needle = randomFloat * max
       const i = upperBound(cumulativeWeight, needle)  // binary search the weight
       return candidates[i]
     },

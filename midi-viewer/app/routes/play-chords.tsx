@@ -1,9 +1,10 @@
 import { Button } from "@nextui-org/button";
 import { ALL_CHORDS, AllTriadic, Chord, detectChords, detectKey, FLAVOUR_CHOICES, getMakeFlavourChoice, Note, noteForDisplay, noteFromMidi, noteToMidi, relativeToFirst, toKeyName } from "noteynotes";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import CountdownContainer from "~/components/CountdownContainer";
 import KeyboardInput from "~/midi/KeyboardInput";
 import PedalDetector from "~/midi/PedalDetector";
+import { RandomContext } from "~/util/RandomProvider";
 import OneUpContainer from "~/view/OneUpContainer";
 import Piano from "~/view/Piano";
 
@@ -20,8 +21,10 @@ const CHORDS = [
 ]
 
 export default function PlayChords() {
+  const random = useContext(RandomContext)
+
   const { chooseChord, candidateChords } = useMemo(
-    () => getMakeFlavourChoice(AllTriadic, ALL_CHORDS),
+    () => getMakeFlavourChoice(AllTriadic, ALL_CHORDS, random),
     []
   )
 
