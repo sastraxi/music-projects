@@ -93,7 +93,7 @@ export const FLAVOUR_CHOICES: Readonly<Array<Flavour>> = [
 export const getMakeFlavourChoice = (
   flavour: Flavour,
   chords: Array<Chord>,
-  randomProvider?: PRNG
+  random?: PRNG
 ) => {
   const weightingFunc = flavour.chordWeightingFunc ?? (() => 1)
 
@@ -124,8 +124,7 @@ export const getMakeFlavourChoice = (
   return {
     candidateChords: candidates,
     chooseChord: () => {
-      const randomFloat = randomProvider ? randomProvider.float() : Math.random()
-      const needle = randomFloat * max
+      const needle = (random?.float() ?? Math.random()) * max
       const i = upperBound(cumulativeWeight, needle)  // binary search the weight
       return candidates[i]
     },

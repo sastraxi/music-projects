@@ -70,3 +70,4 @@ export const subscriptText = (str: string): string =>
     // @ts-ignore hmmm
     .map(x => x in SUBSCRIPT_MAP ? SUBSCRIPT_MAP[x] : '')
     .join('')
+  

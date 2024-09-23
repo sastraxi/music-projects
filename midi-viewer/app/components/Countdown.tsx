@@ -24,8 +24,7 @@ const Countdown = ({
 
   return (
     <div className="relative" style={style}>
-      <Progress
-      />
+      <Progress aria-label="Countdown" />
       <div
         className="play-cursor"
       />

@@ -71,7 +71,10 @@ export const CHORD_LIBRARY: Record<string, ChordArchetype> = {}
   add(['maj11'], 'maj', [11, 14, 17])
   add(['maj13'], 'maj', [11, 14, 18, 21])
 
-  add(['b5'], 'b5')
+  // FIXME: is b5 useful on its own?
+  // add(['b5'], 'b5')
+
+  add(['7b5', 'M7b5'], 'b5', [11])
 
   add(['m', 'min', 'minor'], 'min')
   add(['m6', 'mmaj6'], 'min', [9])

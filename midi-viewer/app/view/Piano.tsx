@@ -154,18 +154,24 @@ export type PianoProps = {
    * The highest note rendered by the keyboard. Defaults to G7
    */
   highest?: Note
+
   /**
-   * Which notes should be highlighted, if any?
+   * Which notes should be lit up, if any?
    */
   highlighted?: Note[]
   /**
-   * If provided, highlighted notes are shown as correct / incorrect
-   * depending on the output of this function. You can return undefined
-   * to indicate a note is neither correct or incorrect (indeterminate),
-   * in which case the highlight colour is the same as if this prop
-   * was not provided.
+   * Which notes should be marked correct, if any?
    */
-  isHighlightedNoteCorrect?: (note: Note) => boolean | undefined
+  correct?: Note[]
+  /**
+   * Which notes should be marked incorrect, if any?
+   */
+  incorrect?: Note[]
+  /**
+   * Which notes should be marked as goal notes, if any?
+   */
+  goal?: Note[]
+
   onClick?: (note: Note) => void
 }
 
@@ -199,23 +205,13 @@ type RenderData = {
   maxX: number
 }
 
-const noteColour = (isBlack: boolean, isHighlighted: boolean, isCorrect?: boolean): string => {
-  if (!isHighlighted) {
-    return isBlack ? "#121212" : "#1f1f1f"
-  } else if (isCorrect === true) {
-    return isBlack ? "#82f496" : "#affbb8"
-  } else if (isCorrect === false) {
-    return isBlack ? "#f472b6" : "#fbcfe8"
-  }
-  // isCorrect === undefined
-  return isBlack ? "#b672f4" : "#e8cffb"
-}
-
 const Piano = ({
   lowest = "F1",
   highest = "E7",
   highlighted = [],
-  isHighlightedNoteCorrect = undefined,
+  correct = [],
+  incorrect = [],
+  goal = [],
   onClick = undefined,
 }: PianoProps) => {
 
@@ -226,12 +222,23 @@ const Piano = ({
     return new Set(highlighted.map(noteToMidi))
   }, [highlighted])
 
+  const midiCorrectSet = useMemo(() => {
+    return new Set(correct.map(noteToMidi))
+  }, [correct])
+
+  const midiIncorrectSet = useMemo(() => {
+    return new Set(incorrect.map(noteToMidi))
+  }, [incorrect])
+
+  const midiGoalSet = useMemo(() => {
+    return new Set(goal.map(noteToMidi))
+  }, [goal])
+
   const { keys, minX, maxX }: RenderData = useMemo(() => {
     const keys = []
     let maxX = -Infinity, minX = Infinity
     for (let key = lowestKey; key <= highestKey; ++key) {
       const isBlack = isBlackKey(key)
-      const isHighlighted = midiHighlightedSet.has(key)
 
       const index = (key - F1)
       const octave = Math.floor(index / 12)
@@ -241,19 +248,24 @@ const Piano = ({
       const width = isBlack ? BLACK_WIDTH : WHITE_WIDTH
       if (x < minX) minX = x
       if (x + width > maxX) maxX = x + width
-
-      const fill = noteColour(
-        isBlack,
-        isHighlighted,
-        isHighlightedNoteCorrect?.(noteFromMidi(key)),
-      )
+      
+      let noteColour = isBlack ? "#121212" : "#1f1f1f"
+      if (midiCorrectSet.has(key)) {
+        noteColour = "#82f496"
+      } else if (midiIncorrectSet.has(key)) {
+        noteColour = "#a42236"
+      } else if (midiGoalSet.has(key)) {
+        noteColour = "#eae572"
+      } else if (midiHighlightedSet.has(key)) {
+        noteColour = isBlack ? "#c3d3d3" : "#fbfbfb"
+      } 
 
       keys.push(
         <PianoKey
           key={key}
           piece={piece}
           x={x}
-          fillColor={fill}
+          fillColor={noteColour}
           onClick={onClick ? () => onClick(noteFromMidi(key)) : undefined}
         />
       )
