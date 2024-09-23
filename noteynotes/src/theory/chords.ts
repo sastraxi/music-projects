@@ -1,5 +1,5 @@
 import { cumulative, shortestOf, unique } from "../util"
-import { ChordName, ChordNotFoundError, ChordSuffix, CONSIDERED_NOTE_NAMES, displayAccidentals, explodeChord, Note, NoteDisplayContext, noteForDisplay, noteIdentity, noteToMidi, RootAndSuffix, stripOctave } from "./common"
+import { ChordName, ChordNotFoundError, ChordSuffix, CONSIDERED_NOTE_NAMES, displayAccidentals, explodeChord, Note, NoteDisplayContext, noteForDisplay, RootAndSuffix, stripOctave } from "./common"
 import { TRIAD_LIBRARY, Triad, TriadName } from "./triads"
 import { Interval, distance, interval, transpose } from "tonal"
 
@@ -95,6 +95,9 @@ export const CHORD_LIBRARY: Record<string, ChordArchetype> = {}
   add(['9sus4'], 'sus4', [10, 14])
 }
 
+// prevent e.g. m6/9 from being parsed as an over chord
+const SUFFIX_WITH_BASS_NOTE = /^(.+)[/]([^\d+])$/
+
 export class Chord {
 
   archetype: ChordArchetype
@@ -176,8 +179,10 @@ export class Chord {
 
     const { root, suffix } = (typeof name === 'string' ? explodeChord(name) : name);
 
-    const [baseSuffix, bassNote] = suffix.split('/')
-    const lookupKey = baseSuffix.trim().toLowerCase()
+    const match = suffix.match(SUFFIX_WITH_BASS_NOTE)
+    const baseSuffix = !!match ? match[1] : suffix
+    const bassNote = !! match ? match[2] : undefined
+    const lookupKey = baseSuffix.trim()
     if (!(lookupKey in CHORD_LIBRARY)) {
       throw new ChordNotFoundError(
         `Could not find ${lookupKey} in chord library (from: ${root} ${suffix})`
@@ -260,6 +265,14 @@ export class Chord {
     return `${root}${space}${displayAccidentals(name)}${over}`
   }
 
+}
+
+export const ALL_CHORDS: Array<Chord> = []
+{
+  for (const chordName of ALL_CHORD_NAMES) {
+    // TODO: over chords!
+    ALL_CHORDS.push(Chord.lookup(chordName))
+  }
 }
 
 export const isValidChord = (name: ChordName | RootAndSuffix): boolean => {

@@ -1,0 +1,4 @@
+.linear-timing, .linear-timing * {
+  transition-duration: 0.5s;
+  transition-timing-function: linear;
+}

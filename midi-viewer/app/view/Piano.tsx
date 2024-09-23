@@ -158,6 +158,14 @@ export type PianoProps = {
    * Which notes should be highlighted, if any?
    */
   highlighted?: Note[]
+  /**
+   * If provided, highlighted notes are shown as correct / incorrect
+   * depending on the output of this function. You can return undefined
+   * to indicate a note is neither correct or incorrect (indeterminate),
+   * in which case the highlight colour is the same as if this prop
+   * was not provided.
+   */
+  isHighlightedNoteCorrect?: (note: Note) => boolean | undefined
   onClick?: (note: Note) => void
 }
 
@@ -191,10 +199,23 @@ type RenderData = {
   maxX: number
 }
 
+const noteColour = (isBlack: boolean, isHighlighted: boolean, isCorrect?: boolean): string => {
+  if (!isHighlighted) {
+    return isBlack ? "#121212" : "#1f1f1f"
+  } else if (isCorrect === true) {
+    return isBlack ? "#82f496" : "#affbb8"
+  } else if (isCorrect === false) {
+    return isBlack ? "#f472b6" : "#fbcfe8"
+  }
+  // isCorrect === undefined
+  return isBlack ? "#b672f4" : "#e8cffb"
+}
+
 const Piano = ({
   lowest = "F1",
   highest = "E7",
   highlighted = [],
+  isHighlightedNoteCorrect = undefined,
   onClick = undefined,
 }: PianoProps) => {
 
@@ -221,10 +242,10 @@ const Piano = ({
       if (x < minX) minX = x
       if (x + width > maxX) maxX = x + width
 
-      const fill = isHighlighted ? (
-        isBlack ? "#f472b6" : "#fbcfe8"
-      ) : (
-        isBlack ? "#121212" : "#1f1f1f"
+      const fill = noteColour(
+        isBlack,
+        isHighlighted,
+        isHighlightedNoteCorrect?.(noteFromMidi(key)),
       )
 
       keys.push(

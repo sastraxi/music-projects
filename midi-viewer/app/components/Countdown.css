@@ -1,0 +1,18 @@
+@keyframes ava {
+  0% { transform: translateX(var(--countdown-playback-start)) }
+  100% { transform: translateX(var(--countdown-playback-end)) }
+}
+
+.play-cursor {
+  animation: ava var(--countdown-playback-duration) linear forwards;
+  animation-delay: var(--countdown-playback-delay);
+  display: var(--countdown-playback-display);
+
+  width: 20px;
+  height: 20px;
+  position: absolute;
+  background: red;
+  left: 0;
+  top: 0;
+}
+

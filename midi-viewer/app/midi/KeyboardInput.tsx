@@ -9,10 +9,13 @@ const EMPTY_SET = new Set<Note>()
 
 const sortPred = (a: Note, b: Note) => noteToMidi(a) - noteToMidi(b)
 
+const noteSetToList = (noteSet: Set<Note>) =>
+  Array.from(noteSet).sort(sortPred)
+
 export type KeyboardInputProps = {
   minNotes: number
 
-  onNote?: (note: Note) => void
+  onNoteAdded?: (note: Note, notes: Note[]) => void
   onFinalize?: (notes: Note[]) => void
   onIdle?: () => void
   
@@ -28,7 +31,6 @@ type KeyboardInputState = {
   isSustain: boolean
   idleTimeout: number | null
   finalizeTimeout: number | null
-
 }
 
 /**
@@ -68,7 +70,7 @@ const KeyboardInput = (_props: KeyboardInputProps) => {
     if (state.current.isSustain) return
     if (state.current.noteSet.size < props.current.minNotes) return
   
-    props.current.onFinalize?.(Array.from(state.current.noteSet).sort(sortPred))
+    props.current.onFinalize?.(noteSetToList(state.current.noteSet))
     state.current.noteSet = EMPTY_SET
 
     if (state.current.finalizeTimeout) {
@@ -107,7 +109,7 @@ const KeyboardInput = (_props: KeyboardInputProps) => {
       const note = noteFromMidi(midiNote)
       if (velocity > 0) {
         state.current.noteSet = new Set(state.current.noteSet).add(note)
-        props.current.onNote?.(note)
+        props.current.onNoteAdded?.(note, noteSetToList(state.current.noteSet))
         tryFinalize()
         scheduleIdle()
       }

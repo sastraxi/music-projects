@@ -6,7 +6,11 @@ const colourForAmount = (amount: number) => {
   return "danger"
 }
 
-const ErrorBar = ({ amount }: { amount: number }) => (
+type ErrorBarProps = {
+  amount: number
+}
+
+const ErrorBar = ({ amount }: ErrorBarProps) => (
   <div className="flex flex-row items-center w-48">
     <span className="text-xs">
       Error

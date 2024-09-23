@@ -57,7 +57,15 @@ export const Balanced: Flavour = {
       + (isOverChord(chord) ? 8 : 0)
   },
   suffixes: {
-    blacklist: new Set(['5', 'sus2sus4', 'aug', 'aug9', 'maj7b5', 'maj7#5', 'mmaj7b5', '9#11', 'm7b5', 'alt']),
+   blacklist: new Set(['5', 'sus2sus4', 'aug', 'aug9', 'maj7b5', 'maj7#5', 'mmaj7b5', '9#11', 'm7b5', 'alt']),
+  }
+}
+
+export const AllTriadic: Flavour = {
+  name: "All Triadic Chords",
+  chordWeightingFunc: Balanced.chordWeightingFunc,
+  suffixes: {
+    blacklist: new Set(['5', 'alt']),
   }
 }
 
