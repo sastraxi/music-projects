@@ -3,7 +3,7 @@ import { XORShift64 } from "random-seedable"
 import PRNG from "random-seedable/@types/PRNG"
 
 // FIXME: generate a new random seed each time, but somehow share it.
-const CONSTANT_SEED = 500
+const CONSTANT_SEED = 505
 
 export const RandomContext = createContext<PRNG>(new XORShift64())
 

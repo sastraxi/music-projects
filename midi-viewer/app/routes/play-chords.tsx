@@ -1,5 +1,5 @@
 import { Button } from "@nextui-org/button";
-import { ALL_CHORDS, AllTriadic, Chord, detectChords, detectKey, FLAVOUR_CHOICES, getMakeFlavourChoice, Note, noteForDisplay, noteFromMidi, noteToMidi, relativeToFirst, toKeyName } from "noteynotes";
+import { ALL_CHORDS, AllTriadic, Chord, detectChords, detectKey, FLAVOUR_CHOICES, getMakeFlavourChoice, Note, noteForDisplay, noteFromMidi, noteIdentity, noteToMidi, OCTAVE_SIZE, relativeToFirst, toKeyName } from "noteynotes";
 import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import CountdownContainer from "~/components/CountdownContainer";
 import KeyboardInput from "~/midi/KeyboardInput";
@@ -20,26 +20,56 @@ const CHORDS = [
   Chord.lookup("Fmmaj7"),
 ]
 
+/**
+ * Returns the lowest note that is the root of the given chord,
+ * or undefined if no such note was played (i.e. in the note list).
+ * Assumes the list is sorted.
+ */
+const getRootFromPerformance = (noteList: Note[], chord: Chord) =>
+  noteList.find(n => noteIdentity(n) === noteIdentity(chord.root))
+
 export default function PlayChords() {
   const random = useContext(RandomContext)
-
-  const { chooseChord, candidateChords } = useMemo(
+  const { chooseChord } = useMemo(
     () => getMakeFlavourChoice(AllTriadic, ALL_CHORDS, random),
     []
   )
 
+  const allowAccidentals = true
   const [pedal, setPedal] = useState<boolean>(false)
   const [noteList, setNoteList] = useState<Note[]>([])
   const [gameState, setGameState] = useState<GameState>(GameState.GUESSING)
   const [chord, setChord] = useState<Chord>(chooseChord())
 
-  const isNoteCorrect = useCallback((note: Note) => {
-    return false
-  }, [chord, noteList])
+  const isNoteCorrect = (note: Note, rootNote?: Note) => {
+    const midiNote = noteToMidi(note)
+    const midiRootNote = rootNote !== undefined ? noteToMidi(rootNote) : undefined
 
-  const advanceToFinal = (notes: Note[]) => {
+    if (allowAccidentals && midiRootNote && midiNote > midiRootNote + OCTAVE_SIZE) {
+      // we can treat anything more than an octave above the root note as an accidental
+      // these notes are neither correct nor incorrect
+    }
+
+    if (midiRootNote && midiNote < midiRootNote) {
+      // this must be the bass note to be correct
+      if (!chord.bass) return false
+      return noteIdentity(note) === noteIdentity(chord.bass)
+    }
+
+    return chord.containsNote(note)
+
+  }
+
+  const noteDiscriminant = useCallback(
+    (note: Note) => isNoteCorrect(note, getRootFromPerformance(noteList, chord)),
+    [noteList, chord]
+  )
+
+  const submitAnswer = (notes: Note[]) => {
     setNoteList(notes)
-    setGameState(GameState.CORRECT)
+    const rootNote = getRootFromPerformance(noteList, chord)
+    const isCorrect = notes.every(note => isNoteCorrect(note, rootNote))
+    setGameState(isCorrect ? GameState.CORRECT : GameState.INCORRECT)
   }
 
   const nextChord = () => {
@@ -99,7 +129,7 @@ export default function PlayChords() {
       {gameState === GameState.GUESSING && (
         <KeyboardInput
           minNotes={3}
-          onFinalize={advanceToFinal}
+          onFinalize={submitAnswer}
           onNoteAdded={(n, nl) => setNoteList(nl)}
           onIdle={() => console.log("Idle!")}
         />
@@ -108,7 +138,7 @@ export default function PlayChords() {
       <div className="mt-4">
         <Piano
           highlighted={noteList}
-          isHighlightedNoteCorrect={gameState !== GameState.GUESSING ? isNoteCorrect : undefined}
+          isHighlightedNoteCorrect={gameState !== GameState.GUESSING ? noteDiscriminant : undefined}
         />
       </div>
     </OneUpContainer>

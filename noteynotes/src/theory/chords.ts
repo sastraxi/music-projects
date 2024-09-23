@@ -1,5 +1,5 @@
 import { cumulative, shortestOf, unique } from "../util"
-import { ChordName, ChordNotFoundError, ChordSuffix, CONSIDERED_NOTE_NAMES, displayAccidentals, explodeChord, Note, NoteDisplayContext, noteForDisplay, RootAndSuffix, stripOctave } from "./common"
+import { ChordName, ChordNotFoundError, ChordSuffix, CONSIDERED_NOTE_NAMES, displayAccidentals, explodeChord, Note, NoteDisplayContext, noteForDisplay, noteIdentity, RootAndSuffix, stripOctave } from "./common"
 import { TRIAD_LIBRARY, Triad, TriadName } from "./triads"
 import { Interval, distance, interval, transpose } from "tonal"
 
@@ -235,6 +235,27 @@ export class Chord {
     return intervals.map(semitones =>
       transpose(rootNote, Interval.fromSemitones(semitones))
     )
+  }
+
+  /**
+   * Returns true if this chord contains the given note.
+   * By default, only the base triad + extensions are considered.
+   */
+  containsNote(
+    note: Note,
+    matchBass = false,
+  ): boolean {
+    const id = noteIdentity(note)
+    if (matchBass && this.bass) {
+      return noteIdentity(this.bass) === id
+    }
+    return unique([
+      0,
+      ...cumulative(this.baseTriad), 
+      ...(this.extensions ?? []),
+    ]).map(semitones =>
+      transpose(this.root, Interval.fromSemitones(semitones))
+    ).map(noteIdentity).includes(id)
   }
 
   /**
