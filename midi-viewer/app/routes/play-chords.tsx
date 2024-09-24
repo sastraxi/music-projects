@@ -184,7 +184,9 @@ export default function PlayChords() {
         <KeyboardInput
           minNotes={minNotes}
           onFinalize={submitAnswer}
-          onNoteAdded={(_, nl) => setNoteList(nl)}
+          onNoteAdded={(n, nl) => {
+            setNoteList(nl)
+          }}
         />
       )}
 

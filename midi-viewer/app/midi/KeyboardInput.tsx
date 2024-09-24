@@ -102,7 +102,7 @@ const KeyboardInput = (_props: KeyboardInputProps) => {
   /**
    * General entry point for MIDI events from the keyboard.
    */
-  const midiCallback = (msg: MIDIMessageEvent) => {
+  const midiCallback = useCallback((msg: MIDIMessageEvent) => {
     const [command, midiNote, velocity] = msg.data!
     if (command === 144) {
       // regular keyboard note, either on/off
@@ -120,7 +120,7 @@ const KeyboardInput = (_props: KeyboardInputProps) => {
       tryFinalize()
       scheduleIdle()
     }
-  }
+  }, [])
 
   useEffect(() => listenForMidi(midiCallback), [])
   useEffect(scheduleIdle, [])
