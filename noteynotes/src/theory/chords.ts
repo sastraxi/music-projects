@@ -56,15 +56,15 @@ export const CHORD_LIBRARY: Record<string, ChordArchetype> = {}
   }
   add(['aug'], 'aug')
   add(['aug7'], 'aug', [11])
-  add(['maj7♯11', '♯11'], 'aug', [11, 18])  // lydian chord
+  add(['maj7#11', '#11'], 'aug', [11, 18])  // lydian chord
 
   add(['', 'maj', 'major'], 'maj')
   add(['6'], 'maj', [9])
   add(['6add9'], 'maj', [9, 14])
   add(['7', 'majm7'], 'maj', [10])
-  add(['7♯9'], 'maj', [10, 15])  // hendrix chord
+  add(['7#9'], 'maj', [10, 15])  // hendrix chord
   add(['maj7'], 'maj', [11])
-  add(['maj9'], 'maj', [11, 14])
+  add(['maj9', '9'], 'maj', [11, 14])
   add(['add9'], 'maj', [14])
   add(['11'], 'maj', [10, 14, 17])
   add(['add11'], 'maj', [17])  // FIXME: is this right or should it be same as maj7 like we had previously?
@@ -74,18 +74,18 @@ export const CHORD_LIBRARY: Record<string, ChordArchetype> = {}
   // FIXME: is b5 useful on its own?
   // add(['b5'], 'b5')
 
-  add(['7b5', 'M7b5'], 'b5', [11])
+  add(['7b5', 'maj7b5', 'M7b5'], 'b5', [11])
 
   add(['m', 'min', 'minor'], 'min')
   add(['m6', 'mmaj6'], 'min', [9])
-  add(['m6/9'], 'min', [9, 14])
+  add(['m6/9', 'm69'], 'min', [9, 14])
   add(['m7'], 'min', [10])
   add(['mmaj7', 'madd11'], 'min', [11])
   add(['m11'], 'min', [10, 14, 17])
 
   add(['°', 'dim', 'm♭5'], 'dim')
   add(['°7', 'dim7'], 'dim', [9])
-  add(['ø7'], 'dim', [10])  // "half-diminished"
+  add(['ø7', 'm7b5'], 'dim', [10])  // "half-diminished"
   add(['°M7', 'dimM7', 'm♭5add11'], 'dim', [11])
 
   add(['5'], '5')
