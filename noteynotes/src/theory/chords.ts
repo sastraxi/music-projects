@@ -99,7 +99,7 @@ export const CHORD_LIBRARY: Record<string, ChordArchetype> = {}
 }
 
 // prevent e.g. m6/9 from being parsed as an over chord
-const SUFFIX_WITH_BASS_NOTE = /^(.+)[/]([^\d+])$/
+const SUFFIX_WITH_BASS_NOTE = /^(.+)[/]([^\d]+)$/
 
 export class Chord {
 

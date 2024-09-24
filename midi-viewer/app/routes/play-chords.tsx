@@ -23,7 +23,7 @@ export default function PlayChords() {
     []
   )
 
-  const [chord, setChord] = useState<Chord>(Chord.lookup("Am7"))
+  const [chord, setChord] = useState<Chord>(Chord.lookup("Asus4/F#"))
   const [performedChord, setPerformedChord] = useState<PerformedChord>()
   const [gameState, setGameState] = useState<GameState>(GameState.GUESSING)
   const [pedal, setPedal] = useState<boolean>(false)
@@ -87,14 +87,13 @@ export default function PlayChords() {
     setGameState(isCorrect(performedChord, chord) ? GameState.CORRECT : GameState.INCORRECT)
     setPerformedChord(performedChord)
     setNoteList(notes)
-    console.log(isCorrect(performedChord, chord), performedChord)
   }
 
   const nextChord = () => {
     setChord(chooseChord())
     setGameState(GameState.GUESSING)
-    setNoteList([])
     setPerformedChord(undefined)
+    setNoteList([])
   }
 
   const feedbackTable = useMemo(() => {
@@ -108,7 +107,6 @@ export default function PlayChords() {
     incorrectFeedback.push(...performedChord
       .accidentals
       .map((playedNote) => `❌ ${noteForDisplay(playedNote)} is not in chord.`))
-
 
     // right column: things we should have played that we didn't
     const missingFeedback: string[] = []
@@ -155,11 +153,11 @@ export default function PlayChords() {
       </div>
 
       <div className="grid gap-4 grid-cols-2 min-h-24 my-8 mx-32 items-center place-items-center">
-        <div className="py-8">
-          <h2 className="text-6xl border-b-3 border-dotted inline border-blue-400">
+        <div className="py-16">
+          <h2 className="text-7xl border-b-3 border-dotted inline border-blue-400">
             {chord.forDisplay()}
           </h2>
-          <p className="mt-4 font-extralight">Play this chord.</p>
+          <p className="mt-8 text-xl font-extralight">Play this chord.</p>
         </div>
         <div>
           {gameState === GameState.CORRECT && (

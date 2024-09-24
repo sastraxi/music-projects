@@ -143,7 +143,12 @@ export const getGoalNotes = (response: PerformedChord, target: Chord): Note[] =>
 
   // finally, add the bass note (so that it didn't mess w/ distance calc before)
   if (target.bass) {
-    notes.push(noteToMidi(noteBelow(target.bass, response.root)))
+    if (response.bass) {
+      notes.push(noteToMidi(response.bass))
+    } else {
+      // figure out an appropriate octave for the octaveless target bass note
+      notes.push(noteToMidi(noteBelow(target.bass, response.root)))
+    }
   }
 
   return notes.sort().map(noteFromMidi)
