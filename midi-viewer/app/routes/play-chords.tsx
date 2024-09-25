@@ -1,12 +1,12 @@
 import { Button } from "@nextui-org/button";
-import { ALL_CHORDS, AllTriadic, Chord, getMakeFlavourChoice, Note, noteForDisplay, noteIdentity, noteToMidi, OCTAVE_SIZE, unique } from "noteynotes";
+import { ALL_CHORDS, AllTriadic, Chord, getMakeFlavourChoice, Note, noteForDisplay, noteIdentity } from "noteynotes";
 import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import CountdownContainer from "~/components/CountdownContainer";
+import { getGoalNotes, interpretPerformance, isCorrect, PerformedChord } from "~/game/performance";
 import { noteSetToList } from "~/midi";
 import KeyboardInput from "~/midi/KeyboardInput";
 import PedalDetector from "~/midi/PedalDetector";
 import { debounce, range } from "~/util";
-import { ALLOW_ADDITIONAL_EXTENSIONS, getGoalNotes, interpretPerformance, isCorrect, PerformedChord } from "~/util/performance";
 import { RandomContext } from "~/util/RandomProvider";
 import OneUpContainer from "~/view/OneUpContainer";
 import Piano from "~/view/Piano";
@@ -165,7 +165,7 @@ export default function PlayChords() {
       <div className="flex flex-row justify-between items-center">
         <div>
           <h1 className="text-xs font-extralight">
-            PERFORM
+            P E R F O R M
           </h1>
           <h2 className="text-2xl">
             Chords

@@ -1,5 +1,5 @@
 import { Chord, MidiNote, Note, noteBelow, noteFromMidi, noteIdentity, noteToMidi, OCTAVE_SIZE, withOctave } from "noteynotes"
-import { sum } from "."
+import { sum } from "~/util"
 
 export const ALLOW_ADDITIONAL_EXTENSIONS = true
 

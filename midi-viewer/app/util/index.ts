@@ -71,3 +71,5 @@ export const subscriptText = (str: string): string =>
     .map(x => x in SUBSCRIPT_MAP ? SUBSCRIPT_MAP[x] : '')
     .join('')
   
+export const capitalize = (s: string) =>
+  s.charAt(0).toUpperCase() + s.slice(1)
