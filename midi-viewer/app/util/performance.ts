@@ -83,6 +83,7 @@ export const interpretPerformance = (sortedNotes: Note[], targetChord: Chord): P
     bass = sortedNotes[0]
   }
 
+  // FIXME: e.g. Fm11 --> if given two Abs, the lower one should be correct, the upper incorrect
   const playedNonBassNotes = bass ? sortedNotes.slice(1) : sortedNotes
   const basicNotes = targetBasicNotes.map(
     targetNote => playedNonBassNotes.find(

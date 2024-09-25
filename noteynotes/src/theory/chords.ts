@@ -1,7 +1,7 @@
 import { cumulative, shortestOf, unique } from "../util"
 import { ChordName, ChordNotFoundError, ChordSuffix, CONSIDERED_NOTE_NAMES, displayAccidentals, explodeChord, Note, NoteDisplayContext, noteForDisplay, noteIdentity, RootAndSuffix, stripOctave } from "./common"
 import { TRIAD_LIBRARY, Triad, TriadName } from "./triads"
-import { Interval, distance, interval, transpose } from "tonal"
+import { Interval, Note as TonalNote, distance, interval, transpose } from "tonal"
 
 export type ChordArchetype = {
   names: string[]
@@ -238,7 +238,7 @@ export class Chord {
     ])
     return intervals.map(semitones =>
       transpose(rootNote, Interval.fromSemitones(semitones))
-    )
+    ).map(TonalNote.simplify)
   }
 
   /**

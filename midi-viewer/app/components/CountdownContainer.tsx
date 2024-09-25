@@ -25,23 +25,16 @@ const CountdownContainer = ({
 }: CountdownProps) => {
   // XXX: assumes pedal is not down when mounted!
   const [initialTimeMs, setInitialTimeMs] = useState<number>(performance.now())
-  const [goalTimeout, setGoalTimeout] = useState<number | null>()
 
   // reset timer whenever we change our props or hit the sustain pedal
   useEffect(() => setInitialTimeMs(performance.now()), [totalMs, onCountdownReached, isPaused])
 
   // whenever the timer resets, schedule callback on countdown completion
   useEffect(() => {
-    if (goalTimeout) window.clearTimeout(goalTimeout)
-    if (!isPaused) {
-      setGoalTimeout(window.setTimeout(onCountdownReached, totalMs))
-    }
+    if (isPaused) return
+    const id = window.setTimeout(onCountdownReached, totalMs)
+    return () => window.clearTimeout(id)
   }, [initialTimeMs])
-
-  // always clean up timers
-  useEffect(() => () => {
-    if (goalTimeout) window.clearTimeout(goalTimeout)
-  }, [])
 
   return (
     <div>

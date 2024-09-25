@@ -1,6 +1,6 @@
 import { Button } from "@nextui-org/button";
 import { ALL_CHORDS, AllTriadic, Chord, getMakeFlavourChoice, Note, noteForDisplay, noteIdentity, noteToMidi, OCTAVE_SIZE, unique } from "noteynotes";
-import { useContext, useMemo, useState } from "react";
+import { useCallback, useContext, useMemo, useState } from "react";
 import CountdownContainer from "~/components/CountdownContainer";
 import KeyboardInput from "~/midi/KeyboardInput";
 import PedalDetector from "~/midi/PedalDetector";
@@ -23,7 +23,7 @@ export default function PlayChords() {
     []
   )
 
-  const [chord, setChord] = useState<Chord>(Chord.lookup("Asus4/F#"))
+  const [chord, setChordInner] = useState<Chord>(Chord.lookup("Fm11"))
   const [performedChord, setPerformedChord] = useState<PerformedChord>()
   const [gameState, setGameState] = useState<GameState>(GameState.GUESSING)
   const [pedal, setPedal] = useState<boolean>(false)
@@ -31,19 +31,28 @@ export default function PlayChords() {
 
   const isGuessing = gameState === GameState.GUESSING
 
+  const setChord = useCallback((newChord: Chord) => {
+    console.log('setting chord', newChord.forDisplay())
+    setChordInner(newChord)
+  }, [setChordInner])
+
+  // TODO: remove this function
   const isNoteCorrect = (note: Note, rootNote?: Note) => {
     const midiNote = noteToMidi(note)
     const midiRootNote = rootNote !== undefined ? noteToMidi(rootNote) : undefined
 
     if (midiRootNote && midiNote < midiRootNote) {
       // this must be the bass note to be correct
-      if (!chord.bass) return false
-      return noteIdentity(note) === noteIdentity(chord.bass)
+      return noteIdentity(note) === noteIdentity(chord.bass ?? chord.root)
     }
 
-    if (chord.containsNote(note)) return true
+    if (chord.containsNote(note)) {
+      console.log(chord.getBasicNotes())
+      return true
+    }
 
-    if (ALLOW_ADDITIONAL_EXTENSIONS && midiRootNote && midiNote > midiRootNote + OCTAVE_SIZE) {
+    const maxExtension = chord.extensions.length > 0 ? chord.extensions[chord.extensions.length - 1] : OCTAVE_SIZE
+    if (ALLOW_ADDITIONAL_EXTENSIONS && midiRootNote && midiNote > midiRootNote + maxExtension) {
       // we can treat anything more than an octave above the root note as
       // a creative decision by the user (an extension)
       // these notes are neither correct nor incorrect
@@ -58,6 +67,7 @@ export default function PlayChords() {
     [chord]
   )
 
+  // FIXME: build off performedChord
   const correctNotes = useMemo(
     () => {
       if (!performedChord) return undefined
@@ -66,6 +76,7 @@ export default function PlayChords() {
     [performedChord],
   )
 
+  // FIXME: build off performedChord
   const incorrectNotes = useMemo(
     () => {
       if (!performedChord) return undefined
@@ -75,14 +86,13 @@ export default function PlayChords() {
   )
 
   const goalNotes = useMemo(
-    () => {
-      if (!performedChord) return undefined
-      return getGoalNotes(performedChord, chord)
-    },
+    () => performedChord ? getGoalNotes(performedChord, chord) : undefined,
     [performedChord],
   )
 
   const submitAnswer = (notes: Note[]) => {
+    console.log('answer submitted for', chord.forDisplay(), '\nnotes are', notes)
+    console.log('ground truth:', chord.getBasicNotes())
     const performedChord = interpretPerformance(notes, chord)
     setGameState(isCorrect(performedChord, chord) ? GameState.CORRECT : GameState.INCORRECT)
     setPerformedChord(performedChord)
@@ -135,16 +145,16 @@ export default function PlayChords() {
     <OneUpContainer>
       <div className="flex flex-row justify-between items-center">
         <div>
-          <h1 className="text-2xl">
-            Perform
+          <h1 className="text-xs font-extralight">
+            PERFORM
           </h1>
-          <h2 className="text-sm">
-            PLAY CHORDS
+          <h2 className="text-2xl">
+            Chords
           </h2>
         </div>
         <div className="flex space-x-2">
           <Button
-            size="lg"
+            size="md"
             color="danger"
           >
             End session
@@ -157,7 +167,9 @@ export default function PlayChords() {
           <h2 className="text-7xl border-b-3 border-dotted inline border-blue-400">
             {chord.forDisplay()}
           </h2>
-          <p className="mt-8 text-xl font-extralight">Play this chord.</p>
+          <p className="mt-8 text-xl font-extralight">
+            Play this chord ({minNotes} notes).
+          </p>
         </div>
         <div>
           {gameState === GameState.CORRECT && (

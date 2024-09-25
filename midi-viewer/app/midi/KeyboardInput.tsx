@@ -29,8 +29,8 @@ type KeyboardInputState = {
    */
   noteSet: Set<Note>
   isSustain: boolean
-  idleTimeout: number | null
-  finalizeTimeout: number | null
+  idleTimeout?: number
+  finalizeTimeout?: number
 }
 
 /**
@@ -47,8 +47,6 @@ const KeyboardInput = (_props: KeyboardInputProps) => {
   const state = useRef<KeyboardInputState>({
     noteSet: EMPTY_SET,
     isSustain: false,
-    idleTimeout: null,
-    finalizeTimeout: null,
   })
 
   const scheduleIdle = () => {
@@ -75,7 +73,7 @@ const KeyboardInput = (_props: KeyboardInputProps) => {
 
     if (state.current.finalizeTimeout) {
       window.clearTimeout(state.current.finalizeTimeout)
-      state.current.finalizeTimeout = null
+      state.current.finalizeTimeout = undefined
     }
   }
 
@@ -85,7 +83,7 @@ const KeyboardInput = (_props: KeyboardInputProps) => {
   const scheduleFinalize = () => {
     if (state.current.finalizeTimeout) {
       window.clearTimeout(state.current.finalizeTimeout)
-      state.current.finalizeTimeout = null
+      state.current.finalizeTimeout = undefined
     }
     state.current.finalizeTimeout = window.setTimeout(finalize, props.current.finalizeThresholdMs)
   }
