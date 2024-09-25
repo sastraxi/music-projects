@@ -84,6 +84,8 @@ export const interpretPerformance = (sortedNotes: Note[], targetChord: Chord): P
   }
 
   // FIXME: e.g. Fm11 --> if given two Abs, the lower one should be correct, the upper incorrect
+  // should these be in "accidentals" or should we provide a map of
+  // "what you played" --> what you should have played?
   const playedNonBassNotes = bass ? sortedNotes.slice(1) : sortedNotes
   const basicNotes = targetBasicNotes.map(
     targetNote => playedNonBassNotes.find(
@@ -94,6 +96,7 @@ export const interpretPerformance = (sortedNotes: Note[], targetChord: Chord): P
     .map((x, i) => x === undefined ? targetBasicNotes[i] : undefined)
     .filter(x => !!x) as Note[]
   
+  // XXX: should bass be treated as an accidental if incorrect?
   // XXX: should we treat extensions differently?
   // I like that we can play them lower if we'd like...
   return {

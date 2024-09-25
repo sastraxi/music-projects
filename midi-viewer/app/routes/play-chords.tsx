@@ -38,57 +38,41 @@ export default function PlayChords() {
 
   const isGuessing = gameState === GameState.GUESSING
 
+  // FIXME: debug; remove this and rename setChordInner back
   const setChord = useCallback((newChord: Chord) => {
     console.log('setting chord', newChord.forDisplay())
     setChordInner(newChord)
   }, [setChordInner])
-
-  // TODO: remove this function
-  const isNoteCorrect = (note: Note, rootNote?: Note) => {
-    const midiNote = noteToMidi(note)
-    const midiRootNote = rootNote !== undefined ? noteToMidi(rootNote) : undefined
-
-    if (midiRootNote && midiNote < midiRootNote) {
-      // this must be the bass note to be correct
-      return noteIdentity(note) === noteIdentity(chord.bass ?? chord.root)
-    }
-
-    if (chord.containsNote(note)) {
-      return true
-    }
-
-    const maxExtension = chord.extensions.length > 0 ? chord.extensions[chord.extensions.length - 1] : OCTAVE_SIZE
-    if (ALLOW_ADDITIONAL_EXTENSIONS && midiRootNote && midiNote > midiRootNote + maxExtension) {
-      // we can treat anything more than an octave above the root note as
-      // a creative decision by the user (an extension)
-      // these notes are neither correct nor incorrect
-      return undefined
-    }
-
-    return false
-  }
 
   const minNotes = useMemo(
     () => chord.getBasicNotes().length,
     [chord]
   )
 
-  // FIXME: build off performedChord
   const correctNotes = useMemo(
     () => {
       if (!performedChord) return undefined
-      return noteList.filter(note => isNoteCorrect(note, performedChord.root) === true)
+      const correct: Note[] = []
+      if (performedChord.bass && noteIdentity(performedChord.bass) === noteIdentity(chord.bass ?? chord.root)) {
+        correct.push(performedChord.bass)
+      }
+      correct.push(...(performedChord.basicNotes.filter(x => !!x) as Note[]))
+      return correct
     },
-    [noteList, performedChord],
+    [performedChord, chord],
   )
 
-  // FIXME: build off performedChord
   const incorrectNotes = useMemo(
     () => {
       if (!performedChord) return undefined
-      return noteList.filter(note => isNoteCorrect(note, performedChord.root) === false)
+      const incorrect: Note[] = []
+      if (performedChord.bass && noteIdentity(performedChord.bass) !== noteIdentity(chord.bass ?? chord.root)) {
+        incorrect.push(performedChord.bass)
+      }
+      incorrect.push(...performedChord.accidentals)
+      return incorrect
     },
-    [noteList, performedChord],
+    [performedChord, chord],
   )
 
   const goalNotes = useMemo(
