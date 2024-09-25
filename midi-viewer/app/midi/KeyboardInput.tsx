@@ -1,36 +1,19 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { useCallback, useEffect, useRef } from "react"
 import listenForMidi from "./listen-for-midi"
-import { Note, noteFromMidi, noteToMidi } from "noteynotes"
+import { Note, noteFromMidi } from "noteynotes"
 
 const DEFAULT_IDLE_MS = 7500
-const DEFAULT_FINALIZE_THRESHOLD_MS = 500
-
-const EMPTY_SET = new Set<Note>()
-
-const sortPred = (a: Note, b: Note) => noteToMidi(a) - noteToMidi(b)
-
-const noteSetToList = (noteSet: Set<Note>) =>
-  Array.from(noteSet).sort(sortPred)
 
 export type KeyboardInputProps = {
-  minNotes: number
-
-  onNoteAdded?: (note: Note, notes: Note[]) => void
-  onFinalize?: (notes: Note[]) => void
+  onNoteDown?: (note: Note) => void
+  onNoteUp?: (note: Note) => void
   onIdle?: () => void
   
   idleMs?: number
-  finalizeThresholdMs?: number
 }
 
 type KeyboardInputState = {
-  /**
-   * The note set is only ever added to, or reset back to empty.
-   */
-  noteSet: Set<Note>
-  isSustain: boolean
   idleTimeout?: number
-  finalizeTimeout?: number
 }
 
 /**
@@ -40,14 +23,10 @@ type KeyboardInputState = {
 const KeyboardInput = (_props: KeyboardInputProps) => {
   const props = useRef<KeyboardInputProps>({
     idleMs: DEFAULT_IDLE_MS,
-    finalizeThresholdMs: DEFAULT_FINALIZE_THRESHOLD_MS,
     ..._props,
   })
   props.current = { ...props.current, ..._props }
-  const state = useRef<KeyboardInputState>({
-    noteSet: EMPTY_SET,
-    isSustain: false,
-  })
+  const state = useRef<KeyboardInputState>({})
 
   const scheduleIdle = () => {
     if (state.current.idleTimeout) {
@@ -60,44 +39,6 @@ const KeyboardInput = (_props: KeyboardInputProps) => {
   }
 
   /**
-   * Communicates the completed chord / set of notes back to the listener.
-   * Finalization only occurs when the minimum note amount has been achieved.
-   * We won't finalize when the sustain pedal is held.
-   */
-  const finalize = () => {
-    if (state.current.isSustain) return
-    if (state.current.noteSet.size < props.current.minNotes) return
-  
-    props.current.onFinalize?.(noteSetToList(state.current.noteSet))
-    state.current.noteSet = EMPTY_SET
-
-    if (state.current.finalizeTimeout) {
-      window.clearTimeout(state.current.finalizeTimeout)
-      state.current.finalizeTimeout = undefined
-    }
-  }
-
-  /**
-   * Schedules finalization to happen in the near future.
-   */
-  const scheduleFinalize = () => {
-    if (state.current.finalizeTimeout) {
-      window.clearTimeout(state.current.finalizeTimeout)
-      state.current.finalizeTimeout = undefined
-    }
-    state.current.finalizeTimeout = window.setTimeout(finalize, props.current.finalizeThresholdMs)
-  }
-
-  /**
-   * When we reach the minimum number of notes, begins finalization after delay.
-   */
-  const tryFinalize = () => {
-    if (state.current.noteSet.size >= props.current.minNotes) {
-      scheduleFinalize()
-    }
-  }
-
-  /**
    * General entry point for MIDI events from the keyboard.
    */
   const midiCallback = useCallback((msg: MIDIMessageEvent) => {
@@ -106,24 +47,16 @@ const KeyboardInput = (_props: KeyboardInputProps) => {
       // regular keyboard note, either on/off
       const note = noteFromMidi(midiNote)
       if (velocity > 0) {
-        state.current.noteSet = new Set(state.current.noteSet).add(note)
-        props.current.onNoteAdded?.(note, noteSetToList(state.current.noteSet))
-        tryFinalize()
-        scheduleIdle()
+        props.current.onNoteDown?.(note)
+      } else {
+        props.current.onNoteUp?.(note)
       }
-    } else if (command === 176 && midiNote === 64) {
-      // sustain pedal
-      // we won't finalize as long as the sustain is being held
-      state.current.isSustain = velocity > 0
-      tryFinalize()
-      scheduleIdle()
     }
   }, [])
 
   useEffect(() => listenForMidi(midiCallback), [])
   useEffect(scheduleIdle, [])
   useEffect(() => () => {
-    if (state.current.finalizeTimeout) window.clearTimeout(state.current.finalizeTimeout)
     if (state.current.idleTimeout) window.clearTimeout(state.current.idleTimeout)
   }, [])
 

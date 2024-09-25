@@ -271,7 +271,7 @@ const Piano = ({
       )
     }
     return { keys, minX, maxX }
-  }, [lowest, highest, midiHighlightedSet])
+  }, [lowest, highest, midiHighlightedSet, midiCorrectSet, midiIncorrectSet, midiGoalSet])
 
   return (
     <svg
