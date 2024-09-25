@@ -28,6 +28,7 @@ export default function PlayNotesIntervals() {
   const [questionIndex, setQuestionIndex] = useState<number>(0)
   const [shownAt, setShownAt] = useState(performance.now())
   const [answers, setAnswers] = useState<Answer[]>([])
+  const [sessionNumber, setSessionNumber] = useState(0)
 
   /**
    * Generates a pair of normally-distributed numbers.
@@ -65,6 +66,13 @@ export default function PlayNotesIntervals() {
       })
     }
     return questions
+  }, [sessionNumber])
+
+  const newSession = useCallback(() => {
+    setSessionNumber(n => n + 1)
+    setQuestionIndex(0)
+    setAnswers([])
+    setCurrentNote(CENTER_NOTE)
   }, [])
 
   const isSessionFinished = questionIndex === questions.length
@@ -101,11 +109,19 @@ export default function PlayNotesIntervals() {
 
   const playArea = useMemo(() => {
     if (isSessionFinished) {
+      const numCorrect = answers.reduce((s, answer) => s + (answer.isCorrect ? 1 : 0), 0)
+      const totalTimeMs = answers.reduce((s, answer) => s + answer.timeTakenMs, 0)
       return (
-        <div className="grid gap-4 grid-cols-1 min-h-24 my-16 mx-32 items-stretch justify-items-stretch place-items-center">
+        <div className="grid gap-4 grid-cols-1 min-h-24 my-32 mx-32 items-stretch justify-items-stretch place-items-center">
           <h1 className="text-3xl">
             A winner is you!
           </h1>
+          <p className="text-medium font-thin">
+            You got <b>{numCorrect} / {questions.length}</b> correct ({(100 * numCorrect / questions.length).toFixed(0)}%).
+          </p>
+          <p className="text-medium font-thin">
+            On average, you took {(totalTimeMs / questions.length).toFixed(0)} ms to answer.
+          </p>
         </div>
       )
     }
@@ -137,31 +153,29 @@ export default function PlayNotesIntervals() {
     return []
   }, [questionIndex, questions, currentNote])
 
-  const correctNotes = useMemo(() => {
+  const { correctNotes, incorrectNotes, goalNotes } = useMemo(() => {
     if (!isSessionFinished) {
-      return []
+      return {
+        correctNotes: undefined,
+        incorrectNotes: undefined,
+        goalNotes: undefined,
+      }
     }
-    return answers
-      .filter(a => a.isCorrect)
-      .map(a => a.chosenNote)
-  }, [questionIndex, questions, answers])
-
-  const incorrectNotes = useMemo(() => {
-    if (!isSessionFinished) {
-      return []
-    }
-    return answers
+  
+    const incorrectNotes = answers
       .filter(a => !a.isCorrect)
       .map(a => a.chosenNote)
-  }, [questionIndex, questions, answers])
 
-  const goalNotes = useMemo(() => {
-    if (!isSessionFinished) {
-      return []
-    }
-    return range(questions.length)
+    const goalNotes = range(questions.length)
       .filter(idx => !answers[idx].isCorrect)
       .map(idx => questions[idx].goal)
+
+    const correctNotes = answers
+      .filter(a => a.isCorrect)
+      .map(a => a.chosenNote)
+      .filter(note => !incorrectNotes.includes(note))
+
+    return { correctNotes, incorrectNotes, goalNotes}
   }, [questionIndex, questions, answers])
 
   return (
@@ -179,8 +193,9 @@ export default function PlayNotesIntervals() {
           <Button
             size="md"
             color="danger"
+            onClick={newSession}
           >
-            End session
+            Restart session
           </Button>
         </div>
       </div>

@@ -5,7 +5,7 @@ import PRNG from "random-seedable/@types/PRNG"
 export const RandomContext = createContext<PRNG>(new XORShift64())
 
 // FIXME: generate on server and send down
-const FIXED_SEED = 727
+const FIXED_SEED = 726
 
 /**
  * Context manager that provides a seeded random number generator
