@@ -59,6 +59,7 @@ export const isCorrect = (candidate: PerformedChord, chord: Chord) => {
 
 /**
  * Constructs a PerformedChord from a given set of notes played e.g. on a keyboard.
+ * Determines how close a user's playing is to a target chord.
  */
 export const interpretPerformance = (sortedNotes: Note[], targetChord: Chord): PerformedChord => {
   if (sortedNotes.length < 2) {
