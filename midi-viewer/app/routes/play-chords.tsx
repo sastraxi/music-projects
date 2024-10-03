@@ -219,6 +219,7 @@ export default function PlayChords() {
           correct={isGuessing ? undefined : correctNotes}
           incorrect={isGuessing ? undefined : incorrectNotes}
           goal={isGuessing ? undefined : goalNotes}
+          onClick={addNote}
         />
       </div>
     </OneUpContainer>
