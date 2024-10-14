@@ -17,8 +17,7 @@
 }
 
 .countdown-container {
-  --countdown-timing-function: cubic-bezier(0.1, 0.1, 1, 0.1);
-  
+  --countdown-timing-function: cubic-bezier(0.7, 0.1, 1, 0.51);
   
   position: relative;
   width: 100%;
@@ -114,14 +113,16 @@
   100% { transform: scaleX(0); }
 }
 
-@keyframes color-shift {
-  0% { background: linear-gradient(90deg, #4a90e2, #63b3ed); }
-  100% { background: linear-gradient(90deg, #ff4136, #ff725c); }
+@keyframes follow-bar {
+  0% { left: 100%; }
+  100% { left: 0; }
 }
 
-@keyframes pulse {
-  0%, 100% { opacity: 1; transform: translateY(-50%) scale(1); }
-  50% { opacity: 0.5; transform: translateY(-50%) scale(0.8); }
+@keyframes color-shift {
+  0% { background: linear-gradient(90deg, #4a90e2, #63b3ed); }
+  60% { background: linear-gradient(90deg, #4a90e2, #ff725c); }
+  80% { background: linear-gradient(90deg, #ff4136, #ff725c); }
+  100% { background: linear-gradient(90deg, #fff4dd, #ffa600); }
 }
 
 @keyframes glow-intensity {
@@ -140,20 +141,14 @@
   50% { opacity: 0.8; }
 }
 
-@keyframes follow-bar {
-  0% { left: 100%; }
-  100% { left: 0%; }
-}
-
 @media (max-width: 768px) {
   .countdown-container {
-    height: 4px; /* Further reduced for mobile */
+    height: 4px;
   }
   
   .countdown-pulse {
     width: 6px;
     height: 6px;
-    right: -2px;
   }
 
   .countdown-glow {
