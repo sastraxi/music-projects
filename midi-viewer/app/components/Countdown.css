@@ -17,6 +17,9 @@
 }
 
 .countdown-container {
+  --countdown-timing-function: cubic-bezier(0.1, 0.1, 1, 0.1);
+  
+  
   position: relative;
   width: 100%;
   height: 6px;
@@ -37,7 +40,7 @@
   background: radial-gradient(ellipse at left, rgba(74, 144, 226, 0.8), rgba(74, 144, 226, 0.4) 30%, transparent 70%);
   filter: blur(8px);
   opacity: 0;
-  animation: glow-intensity var(--countdown-playback-duration) linear forwards,
+  animation: glow-intensity var(--countdown-playback-duration) var(--countdown-timing-function) forwards,
              pulse-glow var(--countdown-pulse-duration) infinite;
   animation-delay: var(--countdown-playback-delay);
   pointer-events: none;
@@ -61,8 +64,8 @@
   width: 100%;
   background: linear-gradient(90deg, #4a90e2, #63b3ed);
   transform-origin: left;
-  animation: shrink var(--countdown-playback-duration) linear forwards,
-             color-shift var(--countdown-playback-duration) linear forwards,
+  animation: shrink var(--countdown-playback-duration) var(--countdown-timing-function) forwards,
+             color-shift var(--countdown-playback-duration) var(--countdown-timing-function) forwards,
              pulse-bar var(--countdown-pulse-duration) infinite;
   animation-delay: var(--countdown-playback-delay);
   border-radius: 3px;
@@ -101,7 +104,7 @@
   background: #ffffff;
   box-shadow: 0 0 12px rgba(255, 255, 255, 0.8);
   animation: pulse var(--countdown-pulse-duration) infinite,
-             follow-bar var(--countdown-playback-duration) linear forwards;
+             follow-bar var(--countdown-playback-duration) var(--countdown-timing-function) forwards;
   animation-delay: 0s, var(--countdown-playback-delay);
   z-index: 1;
 }
