@@ -155,7 +155,7 @@ export default function PlayChords() {
       .map(missingNote => `❓ ${noteForDisplay(missingNote)} missing.`))
 
     return (
-      <table className="text-sm">
+      <table className="text-sm mt-3">
         <tbody>
           {range(Math.max(incorrectFeedback.length, missingFeedback.length)).map((i) => (
             <tr key={i}>
@@ -205,12 +205,14 @@ export default function PlayChords() {
           {gameState === GameState.INCORRECT && (
             <>
               <p>Incorrect.</p>
-              {feedbackTable}
             </>
           )}
           {!isGuessing && (
-            <CountdownContainer onCountdownReached={nextChord} isPaused={pedal} />
+            <div className="w-[30%]">
+              <CountdownContainer onCountdownReached={nextChord} isPaused={pedal} />
+            </div>
           )}
+          {!isGuessing && feedbackTable}
         </div>
       </div>
 
