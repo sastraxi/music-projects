@@ -10,6 +10,7 @@ import { debounce, range } from "~/util";
 import { RandomContext } from "~/util/RandomProvider";
 import OneUpContainer from "~/view/OneUpContainer";
 import Piano from "~/view/Piano";
+import { usePlayChordsStore } from '~/state/play-chords-store'
 
 /**
  * Extra time between when we reach the threshold number of notes
@@ -27,7 +28,7 @@ export default function PlayChords() {
   const random = useContext(RandomContext)
   const { chooseChord } = useMemo(
     () => getMakeFlavourChoice(AllTriadic, ALL_CHORDS, random),
-    []
+    [random]
   )
 
   const [chord, setChordInner] = useState<Chord>(Chord.lookup("Fm11"))
@@ -35,13 +36,14 @@ export default function PlayChords() {
   const [gameState, setGameState] = useState<GameState>(GameState.GUESSING)
   const [pedal, setPedal] = useState<boolean>(false)
   const [noteList, setNoteList] = useState<Note[]>([])
+  const [chordDisplayTime, setChordDisplayTime] = useState<number>(0)
 
   const isGuessing = gameState === GameState.GUESSING
 
-  // FIXME: debug; remove this and rename setChordInner back
   const setChord = useCallback((newChord: Chord) => {
     console.log('setting chord', newChord.forDisplay())
     setChordInner(newChord)
+    setChordDisplayTime(performance.now())
   }, [setChordInner])
 
   const minNotes = useMemo(
@@ -80,6 +82,8 @@ export default function PlayChords() {
     [performedChord],
   )
 
+  const addPlay = usePlayChordsStore((state) => state.addPlay)
+
   /**
    * Debounced submitAnswer allows us to wait for any additional notes
    * to be played right after we hit the threshold.
@@ -91,13 +95,17 @@ export default function PlayChords() {
         console.log('ground truth:', target.getBasicNotes())
     
         const performed = interpretPerformance(notes, target)
-        setGameState(isCorrect(performed, target) ? GameState.CORRECT : GameState.INCORRECT)
+        const isCorrectAnswer = isCorrect(performed, target)
+        setGameState(isCorrectAnswer ? GameState.CORRECT : GameState.INCORRECT)
         setPerformedChord(performed)
 
+        const timeDelta = performance.now() - chordDisplayTime
+        // Add the play to the store
+        addPlay(target, notes, isCorrectAnswer, timeDelta)
       },
       FINALIZATION_DEBOUNCE_MS
     ),
-    [setGameState, setPerformedChord]
+    [setGameState, setPerformedChord, addPlay, chordDisplayTime]
   )
 
   /**
