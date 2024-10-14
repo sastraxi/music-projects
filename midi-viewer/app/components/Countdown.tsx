@@ -1,6 +1,4 @@
 import { useMemo } from 'react'
-import { Progress } from "@nextui-org/progress"
-
 import './Countdown.css'
 
 const Countdown = ({
@@ -13,21 +11,17 @@ const Countdown = ({
   const style = useMemo(
     () => {
       return {
-        "--countdown-playback-start": "0px",
-        "--countdown-playback-end": "50px",
         "--countdown-playback-duration": `${durationMs}ms`,
-        "--countdown-playback-display": "initial",
         "--countdown-playback-delay": `${delayMs}ms`,
       } as React.CSSProperties
     },
     [durationMs, delayMs])
 
   return (
-    <div className="relative" style={style}>
-      <Progress aria-label="Countdown" />
-      <div
-        className="play-cursor"
-      />
+    <div className="countdown-container" style={style}>
+      <div className="countdown-bar">
+        <div className="countdown-pulse" />
+      </div>
     </div>
   )
 }

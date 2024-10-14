@@ -16,3 +16,70 @@
   top: 0;
 }
 
+.countdown-container {
+  position: relative;
+  width: 100%;
+  height: 8px;
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.countdown-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  background: linear-gradient(90deg, #4a90e2, #63b3ed);
+  transform-origin: left;
+  animation: shrink var(--countdown-playback-duration) linear forwards;
+  animation-delay: var(--countdown-playback-delay);
+}
+
+.countdown-bar::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  height: 100%;
+  width: 2px;
+  background: #ffffff;
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.8);
+}
+
+.countdown-pulse {
+  position: absolute;
+  top: 50%;
+  right: -4px;
+  transform: translateY(-50%);
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 0 12px rgba(255, 255, 255, 0.8);
+  animation: pulse 1s infinite;
+}
+
+@keyframes shrink {
+  0% { transform: scaleX(1); }
+  100% { transform: scaleX(0); }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: translateY(-50%) scale(1); }
+  50% { opacity: 0.5; transform: translateY(-50%) scale(0.8); }
+}
+
+@media (max-width: 768px) {
+  .countdown-container {
+    height: 6px;
+  }
+  
+  .countdown-pulse {
+    width: 8px;
+    height: 8px;
+    right: -3px;
+  }
+}
