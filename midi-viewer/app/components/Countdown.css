@@ -3,30 +3,17 @@
   100% { transform: translateX(var(--countdown-playback-end)) }
 }
 
-.play-cursor {
-  animation: ava var(--countdown-playback-duration) linear forwards;
-  animation-delay: var(--countdown-playback-delay);
-  display: var(--countdown-playback-display);
-
-  width: 20px;
-  height: 20px;
-  position: absolute;
-  background: red;
-  left: 0;
-  top: 0;
-}
-
 .countdown-container {
-  --countdown-timing-function: cubic-bezier(0.7, 0.1, 1, 0.51);
+  --countdown-timing-function: cubic-bezier(.93,.37,.95,.75);
   
   position: relative;
   width: 100%;
-  height: 6px;
+  height: 4px;
   background: rgba(0, 0, 0, 0.1);
   border-radius: 3px;
   overflow: visible;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-  margin-top: 4px;
+  margin-top: 0;
 }
 
 .countdown-glow {
@@ -39,8 +26,7 @@
   background: radial-gradient(ellipse at left, rgba(74, 144, 226, 0.8), rgba(74, 144, 226, 0.4) 30%, transparent 70%);
   filter: blur(8px);
   opacity: 0;
-  animation: glow-intensity var(--countdown-playback-duration) var(--countdown-timing-function) forwards,
-             pulse-glow var(--countdown-pulse-duration) infinite;
+  animation: glow-intensity var(--countdown-playback-duration) var(--countdown-timing-function) forwards;
   animation-delay: var(--countdown-playback-delay);
   pointer-events: none;
 }
@@ -132,13 +118,18 @@
 }
 
 @keyframes pulse-glow {
-  0%, 100% { transform: translateY(-50%) scale(1); }
-  50% { transform: translateY(-50%) scale(1.1); }
+  0%, 100% { transform: translateY(-50%) scale(1.6); }
+  50% { transform: translateY(-50%) scale(2.0); }
 }
 
 @keyframes pulse-bar {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.8; }
+}
+
+@keyframes pulse {
+  0%, 100% { transform: translate(-50%, -50%) scale(0.6); }
+  50% { transform: translate(-50%, -50%) scale(1.2); }
 }
 
 @media (max-width: 768px) {
@@ -153,5 +144,10 @@
 
   .countdown-glow {
     filter: blur(4px);
+  }
+
+  @keyframes pulse {
+    0%, 100% { transform: translate(-50%, -50%) scale(1); }
+    50% { transform: translate(-50%, -50%) scale(1.3); }
   }
 }

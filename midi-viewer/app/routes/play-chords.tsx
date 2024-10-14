@@ -200,15 +200,15 @@ export default function PlayChords() {
         </div>
         <div>
           {gameState === GameState.CORRECT && (
-            <p>Correct!</p>
+            <h2>Correct!</h2>
           )}
           {gameState === GameState.INCORRECT && (
             <>
-              <p>Incorrect.</p>
+              <h2 className="my-0">Incorrect.</h2>
             </>
           )}
           {!isGuessing && (
-            <div className="w-[30%]">
+            <div className="w-[80%] my-0">
               <CountdownContainer onCountdownReached={nextChord} isPaused={pedal} />
             </div>
           )}
