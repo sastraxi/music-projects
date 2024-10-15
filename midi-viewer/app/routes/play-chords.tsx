@@ -11,6 +11,8 @@ import { RandomContext } from "~/util/RandomProvider";
 import OneUpContainer from "~/view/OneUpContainer";
 import Piano from "~/view/Piano";
 import { usePlayChordsStore } from '~/state/play-chords-store'
+import { Modal, ModalContent, ModalHeader, ModalBody } from "@nextui-org/modal";
+import PlayChordsStatsTable from "~/components/PlayChordsStatsTable";
 
 /**
  * Extra time between when we reach the threshold number of notes
@@ -168,6 +170,8 @@ export default function PlayChords() {
     )
   }, [performedChord])
 
+  const [isStatsModalOpen, setIsStatsModalOpen] = useState(false);
+
   return (
     <OneUpContainer>
       <div className="flex flex-row justify-between items-center">
@@ -180,6 +184,13 @@ export default function PlayChords() {
           </h2>
         </div>
         <div className="flex space-x-2">
+          <Button
+            size="md"
+            color="primary"
+            onPress={() => setIsStatsModalOpen(true)}
+          >
+            View Stats
+          </Button>
           <Button
             size="md"
             color="danger"
@@ -232,6 +243,23 @@ export default function PlayChords() {
           onClick={addNote}
         />
       </div>
+
+      <Modal 
+        isOpen={isStatsModalOpen} 
+        onClose={() => setIsStatsModalOpen(false)}
+        size="3xl"
+        classNames={{
+          base: "dark",
+          body: "p-0",
+        }}
+      >
+        <ModalContent>
+          <ModalHeader className="flex flex-col gap-1 text-default-800">Play Chords Statistics</ModalHeader>
+          <ModalBody>
+            <PlayChordsStatsTable />
+          </ModalBody>
+        </ModalContent>
+      </Modal>
     </OneUpContainer>
   );
 }

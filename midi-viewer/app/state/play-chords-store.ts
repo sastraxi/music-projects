@@ -13,6 +13,7 @@ interface PlayRecord {
 interface PlayChordsStore {
   plays: PlayRecord[]
   addPlay: (chord: Chord, performedNotes: Note[], correct: boolean, timeDelta: number) => void
+  clearPlays: () => void
 }
 
 export const usePlayChordsStore = create<PlayChordsStore>()(
@@ -30,6 +31,7 @@ export const usePlayChordsStore = create<PlayChordsStore>()(
           },
         ],
       })),
+      clearPlays: () => set({ plays: [] }),
     }),
     {
       name: 'midi-viewer-play-chords',
