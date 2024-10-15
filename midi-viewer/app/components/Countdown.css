@@ -47,7 +47,7 @@
   left: 0;
   height: 100%;
   width: 100%;
-  background: linear-gradient(90deg, #4a90e2, #63b3ed);
+  background: linear-gradient(90deg, var(--color-start), var(--color-end));
   transform-origin: left;
   animation: shrink var(--countdown-playback-duration) var(--countdown-timing-function) forwards,
              color-shift var(--countdown-playback-duration) var(--countdown-timing-function) forwards,
@@ -105,10 +105,22 @@
 }
 
 @keyframes color-shift {
-  0% { background: linear-gradient(90deg, #4a90e2, #63b3ed); }
-  60% { background: linear-gradient(90deg, #4a90e2, #ff725c); }
-  80% { background: linear-gradient(90deg, #ff4136, #ff725c); }
-  100% { background: linear-gradient(90deg, #fff4dd, #ffa600); }
+  0% {
+    --color-start: #4a90e2;
+    --color-end: #63b3ed;
+  }
+  60% {
+    --color-start: #4a90e2;
+    --color-end: #ff725c;
+  }
+  80% {
+    --color-start: #ff4136;
+    --color-end: #ff725c;
+  }
+  100% {
+    --color-start: #fff4dd;
+    --color-end: #ffa600;
+  }
 }
 
 @keyframes glow-intensity {
@@ -150,4 +162,16 @@
     0%, 100% { transform: translate(-50%, -50%) scale(1); }
     50% { transform: translate(-50%, -50%) scale(1.3); }
   }
+}
+
+@property --color-start {
+  syntax: '<color>';
+  initial-value: #4a90e2;
+  inherits: false;
+}
+
+@property --color-end {
+  syntax: '<color>';
+  initial-value: #63b3ed;
+  inherits: false;
 }
