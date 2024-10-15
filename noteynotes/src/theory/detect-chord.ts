@@ -6,11 +6,12 @@ import { TRIAD_LIBRARY,  TriadName } from "./triads"
 
 /**
  * Higher scores are better.
- * Penalize chords with accidentals near the root
+ * Penalize chords with accidentals near the root,
+ * and tie-break goes to the chord without a bass note
  */
 const scoreChord = (chord: Chord) => -(
   sum(chord.accidentals.map(x => 100 - x))
-)
+) - (chord.bass ? 1 : 0)
 
 // which index represents the root note in a given inversion?
 const inversionToRoot = (inversion: number, triadLength: number): number => {
@@ -85,6 +86,7 @@ export const detectChords = (notesWithOctaves: Note[]): Chord[] => {
         const extraIntervals = sortedMidiNotes
           .filter(i => !triadNoteIdentities.includes(midiIdentity(i)))
           .map(x => x - sortedMidiNotes[rootIndex])
+          .map(mod(OCTAVE_SIZE))  // detect higher extensions (e.g. when bass note is super low)
 
         // FIXME: need better typing here
         for (const entry of CHORDS_BY_TRIAD[name as TriadName]!) {
